@@ -1,0 +1,817 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Client Portal | AeroReach Media</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%23090A0F%27/%3E%3Cpath d=%27M6 22L16 7l10 15%27 fill=%27none%27 stroke=%27%23EDEDED%27 stroke-width=%272.4%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M11 26l5-7.5 5 7.5%27 fill=%27none%27 stroke=%27%233b82f6%27 stroke-width=%272.4%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #090A0F; --surface: #0D0E14; --raised: #12141b; --line: #1e2029; --line-strong: #30333f;
+    --fg: #EDEDED; --muted: #8C8E9A; --accent: #3b82f6;
+    --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color-scheme: dark;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--fg); font-family: var(--font-sans); line-height: 1.55; -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; }
+  a { color: inherit; text-decoration: none; }
+  h1, h2, h3, p, ul { margin: 0; }
+  ul { padding: 0; list-style: none; }
+  button { font-family: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+  .hidden { display: none !important; }
+  .wrap { width: 100%; max-width: 1280px; margin-inline: auto; padding-inline: max(16px, env(safe-area-inset-left, 0px)); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
+  header { border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; background: rgba(9,10,15,.85); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+  header .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 500; letter-spacing: -.01em; }
+  .back { font-size: 14px; color: var(--muted); transition: color .2s; }
+  .back:hover { color: var(--fg); }
+  .topbar { display: flex; align-items: center; gap: 12px; }
+  .who { font-size: 13px; color: var(--muted); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pill-btn { height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; color: var(--fg); font: 500 13px var(--font-sans); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .pill-btn:hover { border-color: rgba(237,237,237,.45); background: rgba(237,237,237,.04); }
+
+  /* auth cards */
+  #authMain { flex: 1; display: grid; place-items: center; padding: 40px 16px; }
+  .card { width: 100%; max-width: 420px; border: 1px solid var(--line-strong); background: var(--surface); border-radius: 16px; padding: 32px 28px; }
+  .card h1 { margin-top: 10px; font-size: 1.75rem; letter-spacing: -.03em; font-weight: 500; }
+  .lead { margin-top: 8px; color: var(--muted); font-size: 15px; }
+  label { display: block; margin-top: 18px; font-size: 13px; color: var(--muted); }
+  input[type=text], input[type=email], input[type=password], input[type=number], input[type=url] {
+    width: 100%; height: 44px; margin-top: 6px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line-strong);
+    background: var(--bg); color: var(--fg); font: 400 15px var(--font-sans);
+  }
+  input:focus { border-color: var(--accent); outline: none; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 24px; border-radius: 999px; border: 1px solid var(--line-strong); font: 500 15px var(--font-sans); cursor: pointer; transition: background .2s, border-color .2s; color: var(--fg); background: transparent; }
+  .btn.block { display: flex; width: 100%; margin-top: 22px; }
+  .btn--primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  .btn--primary:hover { background: #fff; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn--ghost:hover { border-color: rgba(237,237,237,.45); background: rgba(237,237,237,.04); }
+  .btn--sm { height: 36px; padding: 0 16px; font-size: 14px; }
+  .msg { margin-top: 14px; font-size: 13px; min-height: 18px; color: var(--muted); }
+  .msg.err { color: #f87171; } .msg.ok { color: #4ade80; }
+  .linkbtn { background: none; border: 0; padding: 0; margin-top: 16px; color: var(--muted); font: 400 13px var(--font-sans); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .linkbtn:hover { color: var(--fg); }
+  .sep { display: flex; align-items: center; gap: 12px; margin: 22px 0 14px; color: var(--muted); font-size: 12px; }
+  .sep::before, .sep::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  /* app shell */
+  #appWrap { flex: 1; width: 100%; max-width: 1280px; margin-inline: auto; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 32px; padding: 28px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px)); }
+  nav.side { position: sticky; top: 88px; align-self: start; display: flex; flex-direction: column; gap: 2px; }
+  nav.side a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; font-size: 14px; color: var(--muted); transition: background .15s, color .15s; border: 1px solid transparent; }
+  nav.side a:hover { color: var(--fg); background: rgba(237,237,237,.04); }
+  nav.side a[aria-current=page] { color: var(--fg); background: rgba(59,130,246,.1); border-color: rgba(59,130,246,.35); }
+  nav.side svg { flex: none; }
+  nav.side a.call { margin-top: 14px; color: var(--bg); justify-content: center; background: var(--fg); }
+  nav.side a.call:hover { background: #fff; color: var(--bg); }
+  .page-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 24px; }
+  .page-head h1 { margin-top: 6px; font-size: 1.9rem; letter-spacing: -.03em; font-weight: 500; }
+  .page-head .sub { margin-top: 4px; color: var(--muted); font-size: 15px; max-width: 60ch; }
+
+  .banner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line-strong); margin-bottom: 20px; font-size: 14px; }
+  .banner.live { border-color: rgba(74,222,128,.4); background: rgba(74,222,128,.06); }
+  .banner.pending { border-color: rgba(251,191,36,.4); background: rgba(251,191,36,.06); }
+  .banner b { font-weight: 500; }
+  .banner small { display: block; color: var(--muted); font-size: 13px; }
+
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .metric { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 14px; padding: 18px; }
+  .metric .v { margin-top: 8px; font-size: 1.7rem; letter-spacing: -.03em; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .metric .h { margin-top: 2px; font-size: 12px; color: var(--muted); }
+  .panel { margin-top: 18px; border: 1px solid var(--line-strong); background: var(--surface); border-radius: 16px; padding: 22px; }
+  .panel h2 { font-size: 1.1rem; font-weight: 500; letter-spacing: -.02em; }
+  .panel .sub { margin-top: 2px; font-size: 14px; color: var(--muted); }
+  .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .two .panel { margin-top: 18px; }
+
+  .bars { margin-top: 16px; display: grid; gap: 12px; }
+  .bar .row { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); margin-bottom: 5px; }
+  .bar .row b { color: var(--fg); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .bar .track { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; }
+  .bar .fill { height: 100%; border-radius: 99px; background: var(--accent); }
+  .bar .fill.done { background: #4ade80; }
+  .list { margin-top: 12px; }
+  .list li { display: flex; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .list li:last-child { border-bottom: 0; }
+  .list .m { color: var(--muted); font-size: 13px; white-space: nowrap; }
+  .empty { padding: 22px 0 6px; text-align: center; color: var(--muted); font-size: 14px; }
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line-strong); font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .badge.live { color: #93c5fd; border-color: rgba(59,130,246,.5); background: rgba(59,130,246,.08); }
+  .badge.done { color: #4ade80; border-color: rgba(74,222,128,.4); background: rgba(74,222,128,.07); }
+
+  .tablewrap { overflow-x: auto; margin-top: 14px; }
+  table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font: 500 11px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 10px 12px; border-bottom: 1px solid var(--line-strong); }
+  td { padding: 12px; border-bottom: 1px solid var(--line); }
+  tr.click { cursor: pointer; } tr.click:hover td { background: rgba(237,237,237,.03); }
+  tr:last-child td { border-bottom: 0; }
+
+  .seg { display: inline-flex; padding: 3px; border: 1px solid var(--line-strong); border-radius: 10px; }
+  .seg button { height: 30px; padding: 0 14px; border: 0; border-radius: 7px; background: transparent; color: var(--muted); font: 500 13px var(--font-sans); cursor: pointer; }
+  .seg button[aria-pressed=true] { background: var(--accent); color: #fff; }
+
+  /* kanban */
+  .board { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 14px; scroll-snap-type: x proximity; }
+  .col { flex: 0 0 272px; scroll-snap-align: start; border: 1px solid var(--line); background: rgba(13,14,20,.7); border-radius: 14px; padding: 12px; }
+  .col-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; padding: 2px 4px 10px; }
+  .col-head h3 { font: 500 11px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .col-head .tot { margin-top: 2px; font-size: 12px; color: #5d606c; font-variant-numeric: tabular-nums; }
+  .deal { display: block; width: 100%; text-align: left; padding: 12px; margin-top: 8px; border: 1px solid var(--line-strong); background: var(--raised); border-radius: 12px; color: var(--fg); cursor: pointer; transition: border-color .15s; }
+  .deal:hover { border-color: rgba(59,130,246,.6); }
+  .deal .n { font-weight: 500; font-size: 14px; }
+  .deal .p { margin-top: 2px; font-size: 12px; color: var(--muted); }
+  .deal .f { margin-top: 10px; display: flex; justify-content: space-between; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .deal .f span:last-child { color: var(--muted); font-size: 12px; }
+  .col .none { margin-top: 8px; padding: 14px 8px; border: 1px dashed var(--line); border-radius: 10px; text-align: center; font-size: 12px; color: #5d606c; }
+
+  /* drawer */
+  .scrim { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.6); opacity: 0; pointer-events: none; transition: opacity .25s; }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .drawer { position: fixed; inset: 0 0 0 auto; z-index: 50; width: min(480px, 100%); display: flex; flex-direction: column; background: var(--surface); border-left: 1px solid var(--line-strong); transform: translateX(100%); visibility: hidden; transition: transform .3s cubic-bezier(.2,.8,.2,1), visibility 0s .3s; }
+  .drawer.open { transform: none; visibility: visible; transition: transform .3s cubic-bezier(.2,.8,.2,1), visibility 0s; }
+  .drawer-head { display: flex; justify-content: space-between; gap: 12px; padding: 20px; border-bottom: 1px solid var(--line); }
+  .drawer-head h2 { font-size: 1.3rem; font-weight: 500; letter-spacing: -.02em; margin-top: 4px; }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 20px; display: grid; gap: 22px; align-content: start; }
+  .drawer h3 { font: 500 11px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .xbtn { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line-strong); background: transparent; color: var(--fg); cursor: pointer; display: grid; place-items: center; flex: none; }
+  .xbtn:hover { border-color: rgba(237,237,237,.45); }
+  .msgbox { padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--raised); margin-bottom: 8px; }
+  .msgbox .t { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+  .msgbox .t b { color: var(--fg); font-weight: 500; }
+  .msgbox p { margin-top: 4px; font-size: 14px; color: #cfd0d6; white-space: pre-wrap; }
+  .doc { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: 10px; font-size: 14px; margin-bottom: 8px; }
+  .doc:hover { border-color: var(--accent); }
+  .doc span:last-child { color: var(--accent); font-size: 12px; }
+  .note { font-size: 13px; color: var(--muted); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  textarea { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--bg); color: var(--fg); font: 400 15px/1.5 var(--font-sans); resize: vertical; }
+  textarea:focus { border-color: var(--accent); outline: none; }
+  .replybar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
+  .replybar .msg { margin: 0; flex: 1; }
+  .msgbox.me { border-color: rgba(59,130,246,.45); background: rgba(59,130,246,.07); }
+
+  /* forms */
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; }
+  .fieldset { margin-top: 22px; padding-top: 6px; border-top: 1px solid var(--line); }
+  .fieldset h3 { margin-top: 14px; font: 500 11px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+  /* vault */
+  .vault { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .vault .panel { margin-top: 0; }
+  .drop { margin-top: 14px; padding: 22px 14px; border: 1.5px dashed var(--line-strong); border-radius: 12px; text-align: center; color: var(--muted); font-size: 14px; cursor: pointer; transition: border-color .15s, background .15s; }
+  .drop:hover, .drop.over { border-color: var(--accent); background: rgba(59,130,246,.06); color: var(--fg); }
+  .drop small { display: block; margin-top: 2px; font-size: 12px; color: #5d606c; }
+  .file { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .file:last-child { border-bottom: 0; }
+  .file .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file .sz { color: var(--muted); font-size: 12px; margin-left: 8px; }
+  .file .acts { display: flex; gap: 6px; flex: none; }
+  .mini { height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line-strong); background: transparent; color: var(--fg); font: 500 12px var(--font-sans); cursor: pointer; }
+  .mini:hover { border-color: rgba(237,237,237,.45); }
+  .mini.danger:hover, .mini.confirm { border-color: #f87171; color: #f87171; }
+
+  /* tags / wishlist */
+  .tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--bg); min-height: 46px; align-items: center; }
+  .tags:focus-within { border-color: var(--accent); }
+  .tags input { flex: 1; min-width: 140px; height: 30px; margin: 0; border: 0; background: transparent; padding: 0 6px; color: var(--fg); font: 400 15px var(--font-sans); }
+  .tags input:focus { outline: none; }
+  .tag { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 6px 0 12px; border-radius: 999px; background: rgba(59,130,246,.12); border: 1px solid rgba(59,130,246,.4); font-size: 13px; }
+  .tag.red { background: rgba(248,113,113,.1); border-color: rgba(248,113,113,.4); }
+  .tag button { width: 18px; height: 18px; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; line-height: 1; font-size: 14px; }
+  .tag button:hover { background: rgba(237,237,237,.15); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .chip { height: 28px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; color: var(--muted); font: 400 13px var(--font-sans); cursor: pointer; }
+  .chip:hover { color: var(--fg); border-color: rgba(237,237,237,.45); }
+  .checks { margin-top: 10px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .check { display: flex; align-items: center; gap: 10px; margin: 0; padding: 12px 14px; border: 1px solid var(--line-strong); border-radius: 10px; color: var(--fg); font-size: 14px; cursor: pointer; }
+  .check input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
+  .check:has(input:checked) { border-color: rgba(59,130,246,.6); background: rgba(59,130,246,.08); }
+  .count { float: right; font-family: var(--font-mono); font-size: 12px; }
+
+  footer { border-top: 1px solid var(--line); padding: 20px 0; font-size: 13px; color: var(--muted); }
+
+  @media (max-width: 960px) {
+    #appWrap { grid-template-columns: minmax(0, 1fr); gap: 18px; padding-top: 16px; }
+    nav.side { position: static; flex-direction: row; overflow-x: auto; gap: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--line); margin-inline: -4px; }
+    nav.side a { flex: none; padding: 9px 12px; }
+    nav.side .call { margin-top: 0; }
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 720px) {
+    .two, .vault, .grid2, .checks { grid-template-columns: minmax(0, 1fr); }
+    .who { display: none; }
+    .col { flex-basis: 82vw; }
+    .page-head h1 { font-size: 1.6rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { .drawer, .scrim { transition: none; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="AeroReach Media home">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <path d="M3 15.5L11 4l8 11.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M7 18.5l4-6 4 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/>
+      </svg>
+      AeroReach
+    </a>
+    <div class="topbar">
+      <span class="who hidden" id="who"></span>
+      <button class="pill-btn hidden" id="signOut" type="button">Sign out</button>
+      <a class="back" id="backLink" href="/">&larr; Back to site</a>
+    </div>
+  </div>
+</header>
+
+<main id="authMain">
+  <!-- Sign in -->
+  <section class="card" id="authView" aria-labelledby="t">
+    <p class="eyebrow">Client Portal</p>
+    <h1 id="t">Sign in</h1>
+    <p class="lead">For AeroReach roster creators and brand partners.</p>
+    <form id="loginForm" novalidate>
+      <label for="email">Email
+        <input id="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+      </label>
+      <label for="pw">Password
+        <input id="pw" type="password" autocomplete="current-password" placeholder="Password" required>
+      </label>
+      <button class="btn btn--primary block" type="submit" id="loginBtn">Sign in</button>
+    </form>
+    <p class="msg" id="loginMsg" role="status" aria-live="polite"></p>
+    <button class="linkbtn" type="button" id="forgot">Forgot your password?</button>
+    <div class="sep">no account yet?</div>
+    <a class="btn btn--ghost block" style="margin-top:0" href="mailto:hamzaosman@aeroreachmedia.com?subject=Client%20Portal%20access">Request portal access</a>
+  </section>
+
+  <!-- Set new password -->
+  <section class="card hidden" id="resetView" aria-labelledby="rt">
+    <p class="eyebrow">Client Portal</p>
+    <h1 id="rt">Set a new password</h1>
+    <form id="resetForm" novalidate>
+      <label for="npw">New password (8+ characters)
+        <input id="npw" type="password" autocomplete="new-password" required>
+      </label>
+      <button class="btn btn--primary block" type="submit">Save password</button>
+    </form>
+    <p class="msg" id="resetMsg" role="status" aria-live="polite"></p>
+  </section>
+</main>
+
+<div id="appWrap" class="hidden">
+  <nav class="side" aria-label="Portal">
+    <a href="#/dashboard" data-nav="dashboard"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Dashboard</a>
+    <a href="#/pipeline" data-nav="pipeline"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="10" rx="1.5"/><rect x="17" y="4" width="4" height="13" rx="1.5"/></svg>Deal Pipeline</a>
+    <a href="#/media-kit" data-nav="media-kit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>Media Kit</a>
+    <a href="#/vault" data-nav="vault"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>File Vault</a>
+    <a href="#/wishlist" data-nav="wishlist"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10A4.5 4.5 0 0112 7.7a4.5 4.5 0 017.5 2.8c0 5.4-7.5 10-7.5 10z"/></svg>Brand Wishlist</a>
+    <a class="btn btn--primary btn--sm call" id="callBtn" href="#">Book a strategy call</a>
+  </nav>
+
+  <div class="content">
+    <!-- DASHBOARD -->
+    <section data-route="dashboard" class="hidden" aria-labelledby="h-dash">
+      <div class="page-head"><div><p class="eyebrow">Overview</p><h1 id="h-dash">Dashboard</h1></div></div>
+      <div class="banner pending" id="statusBanner"></div>
+      <div class="metrics">
+        <div class="metric"><p class="eyebrow">Value secured</p><p class="v" id="mSecured">&ndash;</p><p class="h">Contract sent, in production or paid</p></div>
+        <div class="metric"><p class="eyebrow">Active deals</p><p class="v" id="mActive">&ndash;</p><p class="h">Pitched through production</p></div>
+        <div class="metric"><p class="eyebrow">Brands pitched</p><p class="v" id="mPitched">&ndash;</p><p class="h">Moved past the wishlist</p></div>
+        <div class="metric"><p class="eyebrow">YouTube reach</p><p class="v" id="mReach">&ndash;</p><p class="h" id="mReachSub">Add this in Media Kit</p></div>
+      </div>
+      <div class="two">
+        <div class="panel"><h2>Pipeline by stage</h2><div class="bars" id="stageBars"></div></div>
+        <div class="panel"><h2>Upcoming air dates</h2><p class="sub">Sponsored content scheduled to go live.</p><ul class="list" id="upcoming"></ul></div>
+      </div>
+    </section>
+
+    <!-- PIPELINE -->
+    <section data-route="pipeline" class="hidden" aria-labelledby="h-pipe">
+      <div class="page-head">
+        <div><p class="eyebrow">Sponsorships</p><h1 id="h-pipe">Deal Pipeline</h1><p class="sub">Every deal AeroReach is working for you, from wishlist to paid. Click a deal for the brief, documents and messages.</p></div>
+        <div class="seg" role="group" aria-label="View"><button type="button" id="viewBoard" aria-pressed="true">Board</button><button type="button" id="viewTable" aria-pressed="false">Table</button></div>
+      </div>
+      <div class="board" id="board"></div>
+      <div class="panel hidden" id="tablePanel" style="margin-top:0"><div class="tablewrap" style="margin-top:0"><table><thead><tr><th>Brand</th><th>Package</th><th>Value</th><th>Air date</th><th>Status</th></tr></thead><tbody id="dealRows"></tbody></table></div><p class="empty hidden" id="dealEmpty">No deals yet. AeroReach will add them here as brands respond.</p></div>
+    </section>
+
+    <!-- MEDIA KIT -->
+    <section data-route="media-kit" class="hidden" aria-labelledby="h-kit">
+      <div class="page-head"><div><p class="eyebrow">Analytics and rates</p><h1 id="h-kit">Media Kit</h1><p class="sub">Keep these current. AeroReach uses them in every pitch.</p></div></div>
+      <form class="panel" id="kitForm" novalidate style="margin-top:0">
+        <h3 class="eyebrow">Channel analytics</h3>
+        <div class="grid2">
+          <label for="k_yt">YouTube subscribers<input id="k_yt" type="number" min="0" inputmode="numeric"></label>
+          <label for="k_views">Average views per video<input id="k_views" type="number" min="0" inputmode="numeric"></label>
+          <label for="k_ig">Instagram followers<input id="k_ig" type="number" min="0" inputmode="numeric"></label>
+          <label for="k_eng">Instagram engagement rate (%)<input id="k_eng" type="number" min="0" max="100" step="0.01" inputmode="decimal"></label>
+        </div>
+        <div class="fieldset"><h3>Primary audience (% of viewers, optional)</h3>
+          <div class="grid2">
+            <label for="a_pilots">Pilots<input id="a_pilots" type="number" min="0" max="100" inputmode="decimal"></label>
+            <label for="a_sim">Flight sim<input id="a_sim" type="number" min="0" max="100" inputmode="decimal"></label>
+            <label for="a_ga">General aviation<input id="a_ga" type="number" min="0" max="100" inputmode="decimal"></label>
+            <label for="a_aero">Aerospace<input id="a_aero" type="number" min="0" max="100" inputmode="decimal"></label>
+          </div>
+        </div>
+        <div class="fieldset"><h3>Standard package rates (USD)</h3>
+          <div class="grid2">
+            <label for="k_rv">Dedicated video<input id="k_rv" type="number" min="0" inputmode="numeric"></label>
+            <label for="k_ri">Integration<input id="k_ri" type="number" min="0" inputmode="numeric"></label>
+            <label for="k_rs">Social post<input id="k_rs" type="number" min="0" inputmode="numeric"></label>
+            <label for="k_url">Media kit link (optional)<input id="k_url" type="url" placeholder="https://"></label>
+          </div>
+        </div>
+        <button class="btn btn--primary" type="submit" id="kitBtn" style="margin-top:24px">Save media kit</button>
+        <p class="msg" id="kitMsg" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <!-- VAULT -->
+    <section data-route="vault" class="hidden" aria-labelledby="h-vault">
+      <div class="page-head"><div><p class="eyebrow">Asset vault</p><h1 id="h-vault">File Vault</h1><p class="sub">Upload the files brands ask for. Only you and AeroReach can see them. Up to 10 MB per file.</p></div></div>
+      <p class="msg err" id="vaultMsg" role="status" aria-live="polite" style="margin:0 0 12px"></p>
+      <div class="vault" id="vaultGrid"></div>
+    </section>
+
+    <!-- WISHLIST -->
+    <section data-route="wishlist" class="hidden" aria-labelledby="h-wish">
+      <div class="page-head"><div><p class="eyebrow">Brand intake</p><h1 id="h-wish">Brand Wishlist</h1><p class="sub">Tell AeroReach who you want to work with and what is off limits.</p></div></div>
+      <form class="panel" id="wishForm" novalidate style="margin-top:0">
+        <label for="dreamIn" style="margin-top:0">Dream brands <span class="count" id="dreamCount">0 / 10</span></label>
+        <div class="tags" id="dreamTags"><input id="dreamIn" type="text" placeholder="Type a brand and press Enter" maxlength="60" autocomplete="off"></div>
+        <div class="fieldset" style="margin-top:22px">
+          <label for="proIn" style="margin-top:14px">Prohibited categories</label>
+          <div class="tags" id="proTags"><input id="proIn" type="text" placeholder="Type a category and press Enter" maxlength="60" autocomplete="off"></div>
+          <div class="chips" id="proChips" aria-label="Suggested categories"></div>
+        </div>
+        <div class="fieldset"><h3>Preferred sponsorship formats</h3>
+          <div class="checks" id="formats"></div>
+        </div>
+        <button class="btn btn--primary" type="submit" id="wishBtn" style="margin-top:24px">Save wishlist</button>
+        <p class="msg" id="wishMsg" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle" aria-hidden="true" inert>
+  <div class="drawer-head">
+    <div><p class="eyebrow" id="dPkg"></p><h2 id="dTitle"></h2><p style="margin-top:8px"><span class="badge" id="dStage"></span> <span class="note" id="dMeta"></span></p></div>
+    <button class="xbtn" type="button" id="dClose" aria-label="Close deal details"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div class="drawer-body">
+    <div><h3>Campaign brief</h3><p class="note" id="dBrief" style="font-size:14px;color:#cfd0d6;white-space:pre-wrap"></p></div>
+    <div><h3>Agreement documents</h3><div id="dDocs"></div></div>
+    <div><h3>Messages</h3><div id="dThread"></div>
+      <form id="dReply" novalidate><label for="dText" class="sr">Message to AeroReach</label><textarea id="dText" rows="3" maxlength="2000" placeholder="Write to the AeroReach team about this deal"></textarea>
+      <div class="replybar"><span class="msg" id="dMsg" role="status" aria-live="polite"></span><button class="btn btn--primary btn--sm" type="submit" id="dSend">Send</button></div></form></div>
+  </div>
+</aside>
+
+<footer>
+  <div class="wrap">&copy; 2026 AeroReach Media</div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
+<script>
+(function () {
+  'use strict';
+  // The publishable key is designed to be public. Access is enforced by Row Level Security in Supabase.
+  var SUPABASE_URL = 'https://zawcqakjlxhkbqumeqwj.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_V-QPJZi-g1X-_lgR9nHCdw_kI60HFgf';
+  var CALL_URL = 'mailto:hamzaosman@aeroreachmedia.com?subject=Strategy%20call'; // swap for a Calendly link when you have one
+
+  var $ = function (id) { return document.getElementById(id); };
+  var STAGES = [
+    { id: 'wishlist', label: 'Wishlist / Target' },
+    { id: 'pitch', label: 'Pitch Outbound' },
+    { id: 'negotiation', label: 'Negotiation & Rates' },
+    { id: 'contract', label: 'Contract Sent' },
+    { id: 'production', label: 'Brief & Production' },
+    { id: 'closed', label: 'Closed & Paid' }
+  ];
+  function stageLabel(id) { for (var i = 0; i < STAGES.length; i++) if (STAGES[i].id === id) return STAGES[i].label; return id || ''; }
+  function stageIndex(id) { for (var i = 0; i < STAGES.length; i++) if (STAGES[i].id === id) return i; return 99; }
+  var ROUTES = ['dashboard', 'pipeline', 'media-kit', 'vault', 'wishlist'];
+  var CATS = [
+    { id: 'media-kit', label: 'Media kits', hint: 'PDF or deck' },
+    { id: 'analytics', label: 'Analytics PDFs', hint: 'YouTube and Instagram exports' },
+    { id: 'logos', label: 'Logo vectors', hint: 'SVG, AI, EPS or PNG' },
+    { id: 'rate-cards', label: 'Rate cards', hint: 'PDF' }
+  ];
+  var FORMATS = ['Dedicated video', 'Integration', 'Newsletter', 'Social post'];
+  var SUGGEST = ['Gambling', 'Unverified supplements', 'Crypto', 'Alcohol', 'Adult content', 'Political'];
+  var MAX_BYTES = 10 * 1024 * 1024;
+
+  if (!window.supabase) {
+    $('loginMsg').textContent = 'The portal could not load. Check your connection and refresh.';
+    $('loginMsg').className = 'msg err';
+    return;
+  }
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  var user = null;
+  var S = { deals: [], kit: null };
+
+  /* ---------- helpers ---------- */
+  function say(el, text, kind) { el.textContent = text || ''; el.className = (el.className.indexOf('msg') > -1 ? 'msg' : '') + (kind ? ' ' + kind : ''); }
+  function h(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      if (k === 'text') e.textContent = attrs[k]; else if (k === 'class') e.className = attrs[k]; else e.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (c) { if (c) e.appendChild(c); });
+    return e;
+  }
+  function money(n) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n || 0); }
+  function compact(n) { return new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(n || 0); }
+  function fdate(s) { return s ? new Date(s + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) : 'TBC'; }
+  function safeUrl(u) { return /^https?:\/\//i.test(u || '') ? u : '#'; }
+  function badge(stage) { return h('span', { class: 'badge' + (stage === 'closed' ? ' done' : (stage === 'wishlist' ? '' : ' live')), text: stageLabel(stage) }); }
+  function numOrNull(id) { var v = $(id).value.trim(); return v === '' ? null : Number(v); }
+  function show(view) {
+    $('authMain').classList.toggle('hidden', view === 'appView');
+    $('appWrap').classList.toggle('hidden', view !== 'appView');
+    $('authView').classList.toggle('hidden', view !== 'authView');
+    $('resetView').classList.toggle('hidden', view !== 'resetView');
+    var signedIn = view === 'appView';
+    $('signOut').classList.toggle('hidden', !signedIn);
+    $('who').classList.toggle('hidden', !signedIn);
+    $('backLink').classList.toggle('hidden', signedIn);
+  }
+
+  /* ---------- auth ---------- */
+  $('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var email = $('email').value.trim(), pw = $('pw').value;
+    if (!email || !pw) { say($('loginMsg'), 'Enter your email and password.', 'err'); return; }
+    $('loginBtn').disabled = true; say($('loginMsg'), 'Signing in...');
+    sb.auth.signInWithPassword({ email: email, password: pw }).then(function (r) {
+      $('loginBtn').disabled = false;
+      if (r.error) { say($('loginMsg'), 'That email and password did not match.', 'err'); return; }
+      say($('loginMsg'), ''); $('pw').value = '';
+    });
+  });
+  $('forgot').addEventListener('click', function () {
+    var email = $('email').value.trim();
+    if (!email) { say($('loginMsg'), 'Type your email above first, then click Forgot your password.', 'err'); return; }
+    sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/portal' }).then(function (r) {
+      if (r.error) { say($('loginMsg'), 'Could not send the reset email. Try again in a minute.', 'err'); return; }
+      say($('loginMsg'), 'If that email has an account, a reset link is on its way.', 'ok');
+    });
+  });
+  $('resetForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var p = $('npw').value;
+    if (p.length < 8) { say($('resetMsg'), 'Use at least 8 characters.', 'err'); return; }
+    sb.auth.updateUser({ password: p }).then(function (r) {
+      if (r.error) { say($('resetMsg'), 'Could not save that password. Open the reset link again.', 'err'); return; }
+      $('npw').value = ''; say($('resetMsg'), '');
+      sb.auth.getSession().then(function (s) { if (s.data.session) enter(s.data.session.user); });
+    });
+  });
+  $('signOut').addEventListener('click', function () { sb.auth.signOut(); });
+
+  /* ---------- router ---------- */
+  function currentRoute() {
+    var r = (location.hash || '').replace(/^#\/?/, '');
+    return ROUTES.indexOf(r) > -1 ? r : 'dashboard';
+  }
+  function route() {
+    var r = currentRoute();
+    document.querySelectorAll('[data-route]').forEach(function (s) { s.classList.toggle('hidden', s.getAttribute('data-route') !== r); });
+    document.querySelectorAll('[data-nav]').forEach(function (a) {
+      if (a.getAttribute('data-nav') === r) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    closeDrawer();
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', function () { if (user) route(); });
+
+  function enter(u) {
+    user = u;
+    $('who').textContent = u.email || '';
+    $('callBtn').href = CALL_URL;
+    show('appView');
+    route();
+    loadDeals(); loadKit(); loadWish(); loadFiles();
+  }
+
+  /* ---------- deals: dashboard, board, table, drawer ---------- */
+  function loadDeals() {
+    sb.from('deals').select('*').order('created_at', { ascending: true }).then(function (r) {
+      S.deals = (r.data || []).slice().sort(function (a, b) { return stageIndex(a.stage) - stageIndex(b.stage); });
+      renderDash(); renderBoard(); renderTable();
+    });
+  }
+
+  function renderDash() {
+    var secured = 0, active = 0, pitched = 0;
+    S.deals.forEach(function (d) {
+      var v = Number(d.value) || 0;
+      if (d.stage === 'contract' || d.stage === 'production' || d.stage === 'closed') secured += v;
+      if (d.stage !== 'wishlist' && d.stage !== 'closed') active += 1;
+      if (d.stage !== 'wishlist') pitched += 1;
+    });
+    $('mSecured').textContent = money(secured);
+    $('mActive').textContent = String(active);
+    $('mPitched').textContent = String(pitched);
+    var bars = $('stageBars'); bars.textContent = '';
+    var max = 1, counts = {};
+    STAGES.forEach(function (s) { counts[s.id] = S.deals.filter(function (d) { return d.stage === s.id; }).length; if (counts[s.id] > max) max = counts[s.id]; });
+    STAGES.forEach(function (s) {
+      bars.appendChild(h('div', { class: 'bar' }, [
+        h('div', { class: 'row' }, [h('span', { text: s.label }), h('b', { text: String(counts[s.id]) })]),
+        h('div', { class: 'track' }, [(function () { var f = h('div', { class: 'fill' + (s.id === 'closed' ? ' done' : '') }); f.style.width = (counts[s.id] / max * 100) + '%'; return f; })()])
+      ]));
+    });
+    var up = $('upcoming'); up.textContent = '';
+    var today = new Date().toISOString().slice(0, 10);
+    var list = S.deals.filter(function (d) { return d.air_date && d.air_date >= today && d.stage !== 'wishlist'; })
+      .sort(function (a, b) { return a.air_date < b.air_date ? -1 : 1; }).slice(0, 5);
+    if (!list.length) up.appendChild(h('li', { class: 'empty', text: 'No air dates scheduled yet.' }));
+    list.forEach(function (d) { up.appendChild(h('li', null, [h('span', { text: d.brand }), h('span', { class: 'm', text: fdate(d.air_date) })])); });
+  }
+
+  function renderBanner() {
+    var k = S.kit, ok = !!(k && k.youtube_subs && k.avg_views && (k.rate_video || k.rate_integration || k.rate_social));
+    var b = $('statusBanner'); b.textContent = ''; b.className = 'banner ' + (ok ? 'live' : 'pending');
+    if (ok) {
+      b.appendChild(h('div', null, [h('b', { text: 'Active roster: pitching live' }), h('small', { text: 'Your media kit is on file and AeroReach is pitching brands.' })]));
+      b.appendChild(h('span', { class: 'badge done', text: 'Onboarding complete' }));
+    } else {
+      b.appendChild(h('div', null, [h('b', { text: 'Media kit pending' }), h('small', { text: 'Add your analytics and rates so AeroReach can start pitching brands.' })]));
+      b.appendChild(h('a', { class: 'btn btn--primary btn--sm', href: '#/media-kit', text: 'Complete media kit' }));
+    }
+    $('mReach').textContent = k && k.youtube_subs ? compact(k.youtube_subs) : '–';
+    $('mReachSub').textContent = k && k.avg_views ? compact(k.avg_views) + ' avg views per video' : 'Add this in Media Kit';
+  }
+
+  function dealCard(d) {
+    var btn = h('button', { type: 'button', class: 'deal' }, [
+      h('div', { class: 'n', text: d.brand || '' }),
+      h('div', { class: 'p', text: d.package || '' }),
+      h('div', { class: 'f' }, [h('span', { text: Number(d.value) > 0 ? money(d.value) : 'TBC' }), h('span', { text: fdate(d.air_date) })])
+    ]);
+    btn.addEventListener('click', function () { openDrawer(d, btn); });
+    return btn;
+  }
+  function renderBoard() {
+    var board = $('board'); board.textContent = '';
+    STAGES.forEach(function (s) {
+      var items = S.deals.filter(function (d) { return d.stage === s.id; });
+      var total = items.reduce(function (a, d) { return a + (Number(d.value) || 0); }, 0);
+      var col = h('div', { class: 'col' }, [
+        h('div', { class: 'col-head' }, [
+          h('div', null, [h('h3', { text: s.label }), h('div', { class: 'tot', text: total > 0 ? money(total) : 'No value yet' })]),
+          h('span', { class: 'badge' + (s.id === 'closed' ? ' done' : ''), text: String(items.length) })
+        ])
+      ]);
+      items.forEach(function (d) { col.appendChild(dealCard(d)); });
+      if (!items.length) col.appendChild(h('div', { class: 'none', text: 'No deals here' }));
+      board.appendChild(col);
+    });
+  }
+  function renderTable() {
+    var rows = $('dealRows'); rows.textContent = '';
+    $('dealEmpty').classList.toggle('hidden', S.deals.length > 0);
+    S.deals.forEach(function (d) {
+      var tr = h('tr', { class: 'click', tabindex: '0' }, [
+        h('td', { text: d.brand || '' }), h('td', { text: d.package || '' }),
+        h('td', { text: Number(d.value) > 0 ? money(d.value) : 'TBC' }), h('td', { text: fdate(d.air_date) }),
+        h('td', null, [badge(d.stage)])
+      ]);
+      tr.addEventListener('click', function () { openDrawer(d, tr); });
+      tr.addEventListener('keydown', function (e) { if (e.key === 'Enter') openDrawer(d, tr); });
+      rows.appendChild(tr);
+    });
+  }
+  function setView(v) {
+    var board = v === 'board';
+    $('board').classList.toggle('hidden', !board);
+    $('tablePanel').classList.toggle('hidden', board);
+    $('viewBoard').setAttribute('aria-pressed', String(board));
+    $('viewTable').setAttribute('aria-pressed', String(!board));
+  }
+  $('viewBoard').addEventListener('click', function () { setView('board'); });
+  $('viewTable').addEventListener('click', function () { setView('table'); });
+
+  var lastFocus = null, curDeal = null, legacy = [];
+  function renderThread(msgs) {
+    var th = $('dThread'); th.textContent = '';
+    var all = legacy.map(function (m) { return { who: m.from || 'AeroReach', text: m.text || '', at: m.at ? String(m.at).slice(0, 10) : '', me: false }; })
+      .concat(msgs.map(function (m) { return { who: m.sender === 'client' ? 'You' : 'AeroReach', text: m.body, at: String(m.created_at).slice(0, 10), me: m.sender === 'client' }; }));
+    if (!all.length) th.appendChild(h('p', { class: 'note', text: 'No messages yet. Write to the AeroReach team below.' }));
+    all.forEach(function (m) {
+      th.appendChild(h('div', { class: 'msgbox' + (m.me ? ' me' : '') }, [
+        h('div', { class: 't' }, [h('b', { text: m.who }), h('span', { text: m.at ? fdate(m.at) : '' })]),
+        h('p', { text: m.text })
+      ]));
+    });
+    th.scrollTop = th.scrollHeight;
+  }
+  $('dReply').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var t = $('dText').value.trim();
+    if (!t || !curDeal) return;
+    $('dSend').disabled = true;
+    var dealId = curDeal.id;
+    sb.from('deal_messages').insert({ deal_id: dealId, client_id: user.id, sender: 'client', body: t }).select().then(function (r) {
+      $('dSend').disabled = false;
+      if (r.error) { say($('dMsg'), 'Could not send. Please try again.', 'err'); return; }
+      $('dText').value = ''; say($('dMsg'), 'Sent.', 'ok');
+      sb.from('deal_messages').select('*').eq('deal_id', dealId).order('created_at', { ascending: true }).then(function (x) { if (curDeal && curDeal.id === dealId) renderThread(x.data || []); });
+    });
+  });
+  function openDrawer(d, from) {
+    lastFocus = from || null;
+    $('dPkg').textContent = d.package || 'Sponsorship';
+    $('dTitle').textContent = d.brand || '';
+    var st = $('dStage'); st.textContent = stageLabel(d.stage); st.className = 'badge' + (d.stage === 'closed' ? ' done' : (d.stage === 'wishlist' ? '' : ' live'));
+    $('dMeta').textContent = (Number(d.value) > 0 ? money(d.value) : 'Value TBC') + ' · Air date ' + fdate(d.air_date);
+    $('dBrief').textContent = d.brief || 'No brief yet. AeroReach will add it once the brand confirms.';
+    var docs = $('dDocs'); docs.textContent = '';
+    var dl = Array.isArray(d.docs) ? d.docs : [];
+    if (!dl.length) docs.appendChild(h('p', { class: 'note', text: 'No documents yet.' }));
+    dl.forEach(function (x) { docs.appendChild(h('a', { class: 'doc', href: safeUrl(x.url), target: '_blank', rel: 'noopener noreferrer' }, [h('span', { text: x.label || 'Document' }), h('span', { text: 'Open' })])); });
+    curDeal = d; legacy = Array.isArray(d.thread) ? d.thread : [];
+    renderThread([]); say($('dMsg'), ''); $('dText').value = '';
+    sb.from('deal_messages').select('*').eq('deal_id', d.id).order('created_at', { ascending: true }).then(function (r) {
+      if (curDeal && curDeal.id === d.id) renderThread(r.data || []);
+    });
+    var dr = $('drawer'); dr.removeAttribute('inert'); dr.setAttribute('aria-hidden', 'false');
+    dr.classList.add('open'); $('scrim').classList.add('open');
+    $('dClose').focus();
+  }
+  function closeDrawer() {
+    var dr = $('drawer'); if (!dr.classList.contains('open')) return;
+    dr.classList.remove('open'); $('scrim').classList.remove('open');
+    dr.setAttribute('aria-hidden', 'true'); dr.setAttribute('inert', '');
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  $('dClose').addEventListener('click', closeDrawer);
+  $('scrim').addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
+
+  /* ---------- media kit ---------- */
+  var KIT = { k_yt: 'youtube_subs', k_views: 'avg_views', k_ig: 'ig_followers', k_eng: 'ig_engagement', k_rv: 'rate_video', k_ri: 'rate_integration', k_rs: 'rate_social', a_pilots: 'aud_pilots', a_sim: 'aud_sim', a_ga: 'aud_ga', a_aero: 'aud_aero', k_url: 'kit_url' };
+  function loadKit() {
+    sb.from('media_kits').select('*').eq('user_id', user.id).maybeSingle().then(function (r) {
+      S.kit = r.data || null;
+      var k = S.kit || {};
+      Object.keys(KIT).forEach(function (id) { $(id).value = k[KIT[id]] == null ? '' : k[KIT[id]]; });
+      renderBanner();
+    });
+  }
+  $('kitForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var row = { user_id: user.id, updated_at: new Date().toISOString() };
+    Object.keys(KIT).forEach(function (id) { row[KIT[id]] = id === 'k_url' ? ($(id).value.trim() || null) : numOrNull(id); });
+    if (row.kit_url && !/^https?:\/\//i.test(row.kit_url)) { say($('kitMsg'), 'The media kit link must start with https://', 'err'); return; }
+    $('kitBtn').disabled = true; say($('kitMsg'), 'Saving...');
+    sb.from('media_kits').upsert(row, { onConflict: 'user_id' }).then(function (r) {
+      $('kitBtn').disabled = false;
+      if (r.error) { say($('kitMsg'), 'Could not save. Please try again.', 'err'); return; }
+      S.kit = row; renderBanner(); say($('kitMsg'), 'Saved.', 'ok');
+    });
+  });
+
+  /* ---------- file vault ---------- */
+  var vaultBuilt = false, listEls = {};
+  function fmtSize(b) { return b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB'; }
+  function buildVault() {
+    if (vaultBuilt) return; vaultBuilt = true;
+    var grid = $('vaultGrid');
+    CATS.forEach(function (c) {
+      var input = h('input', { type: 'file', multiple: 'multiple', class: 'hidden', 'aria-label': 'Upload ' + c.label });
+      var drop = h('div', { class: 'drop', tabindex: '0', role: 'button' }, [document.createTextNode('Drop files here or click to upload'), h('small', { text: c.hint })]);
+      var list = h('div', { class: 'files' });
+      listEls[c.id] = list;
+      drop.addEventListener('click', function () { input.click(); });
+      drop.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); } });
+      ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
+      ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('over'); }); });
+      drop.addEventListener('drop', function (e) { upload(c.id, e.dataTransfer.files); });
+      input.addEventListener('change', function () { upload(c.id, input.files); input.value = ''; });
+      grid.appendChild(h('section', { class: 'panel', 'aria-label': c.label }, [h('h2', { text: c.label }), drop, input, list]));
+    });
+  }
+  function upload(cat, files) {
+    var msg = $('vaultMsg'); say(msg, '');
+    var jobs = Array.prototype.slice.call(files || []).map(function (f) {
+      if (f.size > MAX_BYTES) { say(msg, f.name + ' is over 10 MB.', 'err'); return null; }
+      var clean = f.name.replace(/[^A-Za-z0-9._-]+/g, '_').slice(-80);
+      var path = user.id + '/' + cat + '/' + Date.now() + '_' + clean;
+      return sb.storage.from('vault').upload(path, f, { upsert: false }).then(function (r) {
+        if (r.error) say(msg, 'Could not upload ' + f.name + '. Try again.', 'err');
+      });
+    }).filter(Boolean);
+    if (jobs.length) Promise.all(jobs).then(loadFiles);
+  }
+  function loadFiles() {
+    buildVault();
+    CATS.forEach(function (c) {
+      sb.storage.from('vault').list(user.id + '/' + c.id, { limit: 100, sortBy: { column: 'created_at', order: 'desc' } }).then(function (r) {
+        var el = listEls[c.id]; el.textContent = '';
+        var items = (r.data || []).filter(function (f) { return f.name && f.name.charAt(0) !== '.'; });
+        if (!items.length) el.appendChild(h('p', { class: 'empty', text: 'No files yet.' }));
+        items.forEach(function (f) {
+          var path = user.id + '/' + c.id + '/' + f.name;
+          var nm = h('span', { class: 'nm', text: f.name.replace(/^\d+_/, '') });
+          var size = f.metadata && f.metadata.size ? h('span', { class: 'sz', text: fmtSize(f.metadata.size) }) : null;
+          var dl = h('button', { type: 'button', class: 'mini', text: 'Download' });
+          var del = h('button', { type: 'button', class: 'mini danger', text: 'Delete' });
+          dl.addEventListener('click', function () {
+            sb.storage.from('vault').createSignedUrl(path, 60, { download: true }).then(function (x) { if (x.data && x.data.signedUrl) window.location.href = x.data.signedUrl; else say($('vaultMsg'), 'Could not create the download link.', 'err'); });
+          });
+          del.addEventListener('click', function () {
+            if (!del.classList.contains('confirm')) { del.classList.add('confirm'); del.textContent = 'Confirm'; setTimeout(function () { del.classList.remove('confirm'); del.textContent = 'Delete'; }, 3500); return; }
+            sb.storage.from('vault').remove([path]).then(function (x) { if (x.error) say($('vaultMsg'), 'Could not delete that file.', 'err'); loadFiles(); });
+          });
+          el.appendChild(h('div', { class: 'file' }, [h('span', { class: 'nm' }, [nm, size]), h('span', { class: 'acts' }, [dl, del])]));
+        });
+      });
+    });
+  }
+
+  /* ---------- wishlist ---------- */
+  function tagInput(boxId, inputId, red, max, onChange) {
+    var box = $(boxId), input = $(inputId), list = [];
+    function draw() {
+      box.querySelectorAll('.tag').forEach(function (t) { t.remove(); });
+      list.forEach(function (t, i) {
+        var x = h('button', { type: 'button', 'aria-label': 'Remove ' + t, text: '×' });
+        x.addEventListener('click', function () { list.splice(i, 1); draw(); });
+        box.insertBefore(h('span', { class: 'tag' + (red ? ' red' : '') }, [document.createTextNode(t), x]), input);
+      });
+      if (onChange) onChange(list.length);
+    }
+    function add(v) {
+      v = (v || '').trim(); if (!v) return;
+      if (max && list.length >= max) return;
+      if (list.some(function (t) { return t.toLowerCase() === v.toLowerCase(); })) return;
+      list.push(v); draw();
+    }
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); add(input.value); input.value = ''; }
+      else if (e.key === 'Backspace' && !input.value && list.length) { list.pop(); draw(); }
+    });
+    input.addEventListener('blur', function () { add(input.value); input.value = ''; });
+    return { get: function () { return list.slice(); }, set: function (l) { list = (l || []).slice(); draw(); }, add: add };
+  }
+  var dream = tagInput('dreamTags', 'dreamIn', false, 10, function (n) { $('dreamCount').textContent = n + ' / 10'; });
+  var pro = tagInput('proTags', 'proIn', true, 20);
+  SUGGEST.forEach(function (s) {
+    var c = h('button', { type: 'button', class: 'chip', text: '+ ' + s });
+    c.addEventListener('click', function () { pro.add(s); });
+    $('proChips').appendChild(c);
+  });
+  FORMATS.forEach(function (f) {
+    var cb = h('input', { type: 'checkbox', value: f });
+    $('formats').appendChild(h('label', { class: 'check' }, [cb, document.createTextNode(f)]));
+  });
+  function loadWish() {
+    sb.from('wishlists').select('*').eq('user_id', user.id).maybeSingle().then(function (r) {
+      var w = r.data || {};
+      dream.set(w.dream_brands); pro.set(w.prohibited);
+      var fm = w.formats || [];
+      $('formats').querySelectorAll('input').forEach(function (cb) { cb.checked = fm.indexOf(cb.value) > -1; });
+    });
+  }
+  $('wishForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var fm = []; $('formats').querySelectorAll('input').forEach(function (cb) { if (cb.checked) fm.push(cb.value); });
+    var row = { user_id: user.id, dream_brands: dream.get(), prohibited: pro.get(), formats: fm, updated_at: new Date().toISOString() };
+    $('wishBtn').disabled = true; say($('wishMsg'), 'Saving...');
+    sb.from('wishlists').upsert(row, { onConflict: 'user_id' }).then(function (r) {
+      $('wishBtn').disabled = false;
+      say($('wishMsg'), r.error ? 'Could not save. Please try again.' : 'Saved.', r.error ? 'err' : 'ok');
+    });
+  });
+
+  /* ---------- session ---------- */
+  sb.auth.onAuthStateChange(function (event, session) {
+    if (event === 'PASSWORD_RECOVERY') { show('resetView'); return; }
+    if (event === 'SIGNED_OUT') { user = null; S = { deals: [], kit: null }; show('authView'); return; }
+    if (session && session.user && (!user || user.id !== session.user.id)) {
+      if (!$('resetView').classList.contains('hidden')) return;
+      enter(session.user);
+    }
+  });
+  sb.auth.getSession().then(function (r) {
+    if (r.data.session && $('resetView').classList.contains('hidden')) enter(r.data.session.user);
+    else if (!r.data.session) show('authView');
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Founder Dashboard | AeroReach Media</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%23090A0F%27/%3E%3Cpath d=%27M6 22L16 7l10 15%27 fill=%27none%27 stroke=%27%23EDEDED%27 stroke-width=%272.4%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M11 26l5-7.5 5 7.5%27 fill=%27none%27 stroke=%27%233b82f6%27 stroke-width=%272.4%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #090A0F; --surface: #0D0E14; --raised: #12141b; --line: #1e2029; --line-strong: #30333f;
+    --fg: #EDEDED; --muted: #8C8E9A; --accent: #3b82f6;
+    --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color-scheme: dark;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--fg); font-family: var(--font-sans); line-height: 1.55; -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; }
+  a { color: inherit; text-decoration: none; }
+  h1, h2, h3, p, ul { margin: 0; }
+  ul { padding: 0; list-style: none; }
+  button { font-family: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+  .hidden { display: none !important; }
+  .wrap { width: 100%; max-width: 1280px; margin-inline: auto; padding-inline: max(16px, env(safe-area-inset-left, 0px)); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
+  header { border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; background: rgba(9,10,15,.85); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+  header .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 500; letter-spacing: -.01em; }
+  .back { font-size: 14px; color: var(--muted); transition: color .2s; }
+  .back:hover { color: var(--fg); }
+  .topbar { display: flex; align-items: center; gap: 12px; }
+  .who { font-size: 13px; color: var(--muted); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pill-btn { height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; color: var(--fg); font: 500 13px var(--font-sans); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .pill-btn:hover { border-color: rgba(237,237,237,.45); background: rgba(237,237,237,.04); }
+
+  /* auth cards */
+  #authMain { flex: 1; display: grid; place-items: center; padding: 40px 16px; }
+  .card { width: 100%; max-width: 420px; border: 1px solid var(--line-strong); background: var(--surface); border-radius: 16px; padding: 32px 28px; }
+  .card h1 { margin-top: 10px; font-size: 1.75rem; letter-spacing: -.03em; font-weight: 500; }
+  .lead { margin-top: 8px; color: var(--muted); font-size: 15px; }
+  label { display: block; margin-top: 18px; font-size: 13px; color: var(--muted); }
+  input[type=text], input[type=email], input[type=password], input[type=number], input[type=url] {
+    width: 100%; height: 44px; margin-top: 6px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line-strong);
+    background: var(--bg); color: var(--fg); font: 400 15px var(--font-sans);
+  }
+  input:focus { border-color: var(--accent); outline: none; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 24px; border-radius: 999px; border: 1px solid var(--line-strong); font: 500 15px var(--font-sans); cursor: pointer; transition: background .2s, border-color .2s; color: var(--fg); background: transparent; }
+  .btn.block { display: flex; width: 100%; margin-top: 22px; }
+  .btn--primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  .btn--primary:hover { background: #fff; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn--ghost:hover { border-color: rgba(237,237,237,.45); background: rgba(237,237,237,.04); }
+  .btn--sm { height: 36px; padding: 0 16px; font-size: 14px; }
+  .msg { margin-top: 14px; font-size: 13px; min-height: 18px; color: var(--muted); }
+  .msg.err { color: #f87171; } .msg.ok { color: #4ade80; }
+  .linkbtn { background: none; border: 0; padding: 0; margin-top: 16px; color: var(--muted); font: 400 13px var(--font-sans); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .linkbtn:hover { color: var(--fg); }
+  .sep { display: flex; align-items: center; gap: 12px; margin: 22px 0 14px; color: var(--muted); font-size: 12px; }
+  .sep::before, .sep::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  /* app shell */
+  #appWrap { flex: 1; width: 100%; max-width: 1280px; margin-inline: auto; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 32px; padding: 28px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px)); }
+  nav.side { position: sticky; top: 88px; align-self: start; display: flex; flex-direction: column; gap: 2px; }
+  nav.side a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; font-size: 14px; color: var(--muted); transition: background .15s, color .15s; border: 1px solid transparent; }
+  nav.side a:hover { color: var(--fg); background: rgba(237,237,237,.04); }
+  nav.side a[aria-current=page] { color: var(--fg); background: rgba(59,130,246,.1); border-color: rgba(59,130,246,.35); }
+  nav.side svg { flex: none; }
+  nav.side a.call { margin-top: 14px; color: var(--bg); justify-content: center; background: var(--fg); }
+  nav.side a.call:hover { background: #fff; color: var(--bg); }
+  .page-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 24px; }
+  .page-head h1 { margin-top: 6px; font-size: 1.9rem; letter-spacing: -.03em; font-weight: 500; }
+  .page-head .sub { margin-top: 4px; color: var(--muted); font-size: 15px; max-width: 60ch; }
+
+  .banner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line-strong); margin-bottom: 20px; font-size: 14px; }
+  .banner.live { border-color: rgba(74,222,128,.4); background: rgba(74,222,128,.06); }
+  .banner.pending { border-color: rgba(251,191,36,.4); background: rgba(251,191,36,.06); }
+  .banner b { font-weight: 500; }
+  .banner small { display: block; color: var(--muted); font-size: 13px; }
+
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .metric { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 14px; padding: 18px; }
+  .metric .v { margin-top: 8px; font-size: 1.7rem; letter-spacing: -.03em; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .metric .h { margin-top: 2px; font-size: 12px; color: var(--muted); }
+  .panel { margin-top: 18px; border: 1px solid var(--line-strong); background: var(--surface); border-radius: 16px; padding: 22px; }
+  .panel h2 { font-size: 1.1rem; font-weight: 500; letter-spacing: -.02em; }
+  .panel .sub { margin-top: 2px; font-size: 14px; color: var(--muted); }
+  .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .two .panel { margin-top: 18px; }
+
+  .bars { margin-top: 16px; display: grid; gap: 12px; }
+  .bar .row { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); margin-bottom: 5px; }
+  .bar .row b { color: var(--fg); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .bar .track { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; }
+  .bar .fill { height: 100%; border-radius: 99px; background: var(--accent); }
+  .bar .fill.done { background: #4ade80; }
+  .list { margin-top: 12px; }
+  .list li { display: flex; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .list li:last-child { border-bottom: 0; }
+  .list .m { color: var(--muted); font-size: 13px; white-space: nowrap; }
+  .empty { padding: 22px 0 6px; text-align: center; color: var(--muted); font-size: 14px; }
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line-strong); font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .badge.live { color: #93c5fd; border-color: rgba(59,130,246,.5); background: rgba(59,130,246,.08); }
+  .badge.done { color: #4ade80; border-color: rgba(74,222,128,.4); background: rgba(74,222,128,.07); }
+
+  .tablewrap { overflow-x: auto; margin-top: 14px; }
+  table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font: 500 11px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 10px 12px; border-bottom: 1px solid var(--line-strong); }
+  td { padding: 12px; border-bottom: 1px solid var(--line); }
+  tr.click { cursor: pointer; } tr.click:hover td { background: rgba(237,237,237,.03); }
+  tr:last-child td { border-bottom: 0; }
+
+  .seg { display: inline-flex; padding: 3px; border: 1px solid var(--line-strong); border-radius: 10px; }
+  .seg button { height: 30px; padding: 0 14px; border: 0; border-radius: 7px; background: transparent; color: var(--muted); font: 500 13px var(--font-sans); cursor: pointer; }
+  .seg button[aria-pressed=true] { background: var(--accent); color: #fff; }
+
+  /* kanban */
+  .board { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 14px; scroll-snap-type: x proximity; }
+  .col { flex: 0 0 272px; scroll-snap-align: start; border: 1px solid var(--line); background: rgba(13,14,20,.7); border-radius: 14px; padding: 12px; }
+  .col-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; padding: 2px 4px 10px; }
+  .col-head h3 { font: 500 11px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .col-head .tot { margin-top: 2px; font-size: 12px; color: #5d606c; font-variant-numeric: tabular-nums; }
+  .deal { display: block; width: 100%; text-align: left; padding: 12px; margin-top: 8px; border: 1px solid var(--line-strong); background: var(--raised); border-radius: 12px; color: var(--fg); cursor: pointer; transition: border-color .15s; }
+  .deal:hover { border-color: rgba(59,130,246,.6); }
+  .deal .n { font-weight: 500; font-size: 14px; }
+  .deal .p { margin-top: 2px; font-size: 12px; color: var(--muted); }
+  .deal .f { margin-top: 10px; display: flex; justify-content: space-between; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .deal .f span:last-child { color: var(--muted); font-size: 12px; }
+  .col .none { margin-top: 8px; padding: 14px 8px; border: 1px dashed var(--line); border-radius: 10px; text-align: center; font-size: 12px; color: #5d606c; }
+
+  /* drawer */
+  .scrim { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.6); opacity: 0; pointer-events: none; transition: opacity .25s; }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .drawer { position: fixed; inset: 0 0 0 auto; z-index: 50; width: min(480px, 100%); display: flex; flex-direction: column; background: var(--surface); border-left: 1px solid var(--line-strong); transform: translateX(100%); visibility: hidden; transition: transform .3s cubic-bezier(.2,.8,.2,1), visibility 0s .3s; }
+  .drawer.open { transform: none; visibility: visible; transition: transform .3s cubic-bezier(.2,.8,.2,1), visibility 0s; }
+  .drawer-head { display: flex; justify-content: space-between; gap: 12px; padding: 20px; border-bottom: 1px solid var(--line); }
+  .drawer-head h2 { font-size: 1.3rem; font-weight: 500; letter-spacing: -.02em; margin-top: 4px; }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 20px; display: grid; gap: 22px; align-content: start; }
+  .drawer h3 { font: 500 11px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .xbtn { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line-strong); background: transparent; color: var(--fg); cursor: pointer; display: grid; place-items: center; flex: none; }
+  .xbtn:hover { border-color: rgba(237,237,237,.45); }
+  .msgbox { padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--raised); margin-bottom: 8px; }
+  .msgbox .t { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+  .msgbox .t b { color: var(--fg); font-weight: 500; }
+  .msgbox p { margin-top: 4px; font-size: 14px; color: #cfd0d6; white-space: pre-wrap; }
+  .doc { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: 10px; font-size: 14px; margin-bottom: 8px; }
+  .doc:hover { border-color: var(--accent); }
+  .doc span:last-child { color: var(--accent); font-size: 12px; }
+  .note { font-size: 13px; color: var(--muted); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  textarea { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--bg); color: var(--fg); font: 400 15px/1.5 var(--font-sans); resize: vertical; }
+  textarea:focus { border-color: var(--accent); outline: none; }
+  .replybar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
+  .replybar .msg { margin: 0; flex: 1; }
+  .msgbox.me { border-color: rgba(59,130,246,.45); background: rgba(59,130,246,.07); }
+
+  /* forms */
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; }
+  .fieldset { margin-top: 22px; padding-top: 6px; border-top: 1px solid var(--line); }
+  .fieldset h3 { margin-top: 14px; font: 500 11px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+  /* vault */
+  .vault { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .vault .panel { margin-top: 0; }
+  .drop { margin-top: 14px; padding: 22px 14px; border: 1.5px dashed var(--line-strong); border-radius: 12px; text-align: center; color: var(--muted); font-size: 14px; cursor: pointer; transition: border-color .15s, background .15s; }
+  .drop:hover, .drop.over { border-color: var(--accent); background: rgba(59,130,246,.06); color: var(--fg); }
+  .drop small { display: block; margin-top: 2px; font-size: 12px; color: #5d606c; }
+  .file { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .file:last-child { border-bottom: 0; }
+  .file .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file .sz { color: var(--muted); font-size: 12px; margin-left: 8px; }
+  .file .acts { display: flex; gap: 6px; flex: none; }
+  .mini { height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line-strong); background: transparent; color: var(--fg); font: 500 12px var(--font-sans); cursor: pointer; }
+  .mini:hover { border-color: rgba(237,237,237,.45); }
+  .mini.danger:hover, .mini.confirm { border-color: #f87171; color: #f87171; }
+
+  /* tags / wishlist */
+  .tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--bg); min-height: 46px; align-items: center; }
+  .tags:focus-within { border-color: var(--accent); }
+  .tags input { flex: 1; min-width: 140px; height: 30px; margin: 0; border: 0; background: transparent; padding: 0 6px; color: var(--fg); font: 400 15px var(--font-sans); }
+  .tags input:focus { outline: none; }
+  .tag { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 6px 0 12px; border-radius: 999px; background: rgba(59,130,246,.12); border: 1px solid rgba(59,130,246,.4); font-size: 13px; }
+  .tag.red { background: rgba(248,113,113,.1); border-color: rgba(248,113,113,.4); }
+  .tag button { width: 18px; height: 18px; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; line-height: 1; font-size: 14px; }
+  .tag button:hover { background: rgba(237,237,237,.15); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .chip { height: 28px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; color: var(--muted); font: 400 13px var(--font-sans); cursor: pointer; }
+  .chip:hover { color: var(--fg); border-color: rgba(237,237,237,.45); }
+  .checks { margin-top: 10px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .check { display: flex; align-items: center; gap: 10px; margin: 0; padding: 12px 14px; border: 1px solid var(--line-strong); border-radius: 10px; color: var(--fg); font-size: 14px; cursor: pointer; }
+  .check input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
+  .check:has(input:checked) { border-color: rgba(59,130,246,.6); background: rgba(59,130,246,.08); }
+  .count { float: right; font-family: var(--font-mono); font-size: 12px; }
+
+  footer { border-top: 1px solid var(--line); padding: 20px 0; font-size: 13px; color: var(--muted); }
+
+  @media (max-width: 960px) {
+    #appWrap { grid-template-columns: minmax(0, 1fr); gap: 18px; padding-top: 16px; }
+    nav.side { position: static; flex-direction: row; overflow-x: auto; gap: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--line); margin-inline: -4px; }
+    nav.side a { flex: none; padding: 9px 12px; }
+    nav.side .call { margin-top: 0; }
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 720px) {
+    .two, .vault, .grid2, .checks { grid-template-columns: minmax(0, 1fr); }
+    .who { display: none; }
+    .col { flex-basis: 82vw; }
+    .page-head h1 { font-size: 1.6rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { .drawer, .scrim { transition: none; } }
+</style>
+<style>
+  /* admin additions */
+  #adminWrap { flex: 1; width: 100%; max-width: 1280px; margin-inline: auto; padding: 24px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px)); }
+  .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); margin: 22px 0 20px; overflow-x: auto; }
+  .tabs button { position: relative; flex: none; height: 42px; padding: 0 16px; border: 0; background: transparent; color: var(--muted); font: 500 14px var(--font-sans); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tabs button:hover { color: var(--fg); }
+  .tabs button[aria-selected=true] { color: var(--fg); border-bottom-color: var(--accent); }
+  .dot { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 8px; border-radius: 99px; background: var(--accent); color: #fff; font-size: 11px; font-weight: 600; }
+  .split { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 18px; align-items: start; }
+  .convs { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 16px; overflow: hidden; }
+  .conv { display: block; width: 100%; text-align: left; padding: 14px 16px; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--fg); cursor: pointer; }
+  .conv:last-child { border-bottom: 0; }
+  .conv:hover, .conv[aria-current=true] { background: rgba(59,130,246,.07); }
+  .conv .top { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+  .conv .who { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .conv .snip { margin-top: 6px; font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .conv.unread .snip { color: var(--fg); }
+  .threadpane { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 16px; padding: 20px; min-height: 280px; }
+  .threadpane .msgs { margin: 14px 0; max-height: 52vh; overflow-y: auto; }
+  .msgbox.admin { border-color: rgba(59,130,246,.45); background: rgba(59,130,246,.07); }
+  .kv { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 18px; margin-top: 12px; font-size: 14px; }
+  .kv span { color: var(--muted); display: block; font-size: 12px; }
+  .row-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+  select, input[type=date] { width: 100%; height: 44px; margin-top: 6px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--bg); color: var(--fg); font: 400 15px var(--font-sans); }
+  td select { height: 34px; margin: 0; font-size: 13px; width: auto; min-width: 150px; }
+  .modal { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px; background: rgba(0,0,0,.65); }
+  .modal .box { width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 16px; padding: 24px; }
+  .tagrow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  @media (max-width: 860px) { .split { grid-template-columns: minmax(0, 1fr); } .kv { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="AeroReach Media home">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <path d="M3 15.5L11 4l8 11.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M7 18.5l4-6 4 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/>
+      </svg>
+      AeroReach <span class="badge live" style="margin-left:6px">Founder</span>
+    </a>
+    <div class="topbar">
+      <span class="who hidden" id="who"></span>
+      <button class="pill-btn hidden" id="signOut" type="button">Sign out</button>
+    </div>
+  </div>
+</header>
+
+<main id="authMain">
+  <section class="card" id="authView" aria-labelledby="t">
+    <p class="eyebrow">Founder access</p>
+    <h1 id="t">Admin sign in</h1>
+    <p class="lead">AeroReach team only.</p>
+    <form id="loginForm" novalidate>
+      <label for="email">Email<input id="email" type="email" autocomplete="email" required></label>
+      <label for="pw">Password<input id="pw" type="password" autocomplete="current-password" required></label>
+      <button class="btn btn--primary block" type="submit" id="loginBtn">Sign in</button>
+    </form>
+    <p class="msg" id="loginMsg" role="status" aria-live="polite"></p>
+  </section>
+</main>
+
+<div id="adminWrap" class="hidden">
+  <div class="page-head"><div><p class="eyebrow">AeroReach</p><h1>Founder dashboard</h1></div>
+    <button class="btn btn--primary btn--sm" type="button" id="newDeal">Add deal</button></div>
+  <div class="metrics">
+    <div class="metric"><p class="eyebrow">Unread messages</p><p class="v" id="mUnread">&ndash;</p></div>
+    <div class="metric"><p class="eyebrow">Clients</p><p class="v" id="mClients">&ndash;</p></div>
+    <div class="metric"><p class="eyebrow">Active deals</p><p class="v" id="mActive">&ndash;</p></div>
+    <div class="metric"><p class="eyebrow">Value secured</p><p class="v" id="mSecured">&ndash;</p></div>
+  </div>
+
+  <div class="tabs" role="tablist" aria-label="Sections">
+    <button type="button" role="tab" data-tab="messages" aria-selected="true">Messages<span class="dot hidden" id="tabDot">0</span></button>
+    <button type="button" role="tab" data-tab="clients" aria-selected="false">Clients</button>
+    <button type="button" role="tab" data-tab="deals" aria-selected="false">All deals</button>
+  </div>
+
+  <section data-tab-panel="messages">
+    <div class="split">
+      <div class="convs" id="convList"></div>
+      <div class="threadpane" id="threadPane"><p class="empty">Pick a conversation.</p></div>
+    </div>
+  </section>
+
+  <section data-tab-panel="clients" class="hidden">
+    <div class="split">
+      <div class="convs" id="clientList"></div>
+      <div class="threadpane" id="clientPane"><p class="empty">Pick a client.</p></div>
+    </div>
+  </section>
+
+  <section data-tab-panel="deals" class="hidden">
+    <div class="panel" style="margin-top:0"><div class="tablewrap" style="margin-top:0">
+      <table style="min-width:760px"><thead><tr><th>Client</th><th>Brand</th><th>Package</th><th>Value</th><th>Stage</th><th>Air date</th><th></th></tr></thead><tbody id="allDeals"></tbody></table>
+    </div><p class="empty hidden" id="noDeals">No deals yet. Click "Add deal".</p></div>
+  </section>
+</div>
+
+<div class="modal hidden" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <form class="box" id="dealForm" novalidate>
+    <h2 id="mTitle" style="font-size:1.3rem;font-weight:500;letter-spacing:-.02em">Add deal</h2>
+    <label for="f_client" style="margin-top:14px">Client<select id="f_client"></select></label>
+    <div class="grid2">
+      <label for="f_brand">Brand<input id="f_brand" type="text" maxlength="80"></label>
+      <label for="f_pkg">Package<select id="f_pkg"><option>Dedicated Video</option><option>Integration</option><option>Short / Social Post</option><option>Newsletter</option></select></label>
+      <label for="f_value">Value (USD)<input id="f_value" type="number" min="0" inputmode="numeric"></label>
+      <label for="f_stage">Stage<select id="f_stage"></select></label>
+      <label for="f_air">Estimated air date<input id="f_air" type="date"></label>
+    </div>
+    <label for="f_brief">Campaign brief<textarea id="f_brief" rows="4" maxlength="4000"></textarea></label>
+    <label for="f_docs">Agreement documents (one per line: Label | https://link)<textarea id="f_docs" rows="3" placeholder="Contract | https://drive.google.com/..."></textarea></label>
+    <p class="msg" id="formMsg" role="status" aria-live="polite"></p>
+    <div class="row-actions" style="justify-content:space-between">
+      <span><button class="btn btn--primary btn--sm" type="submit" id="saveDeal">Save deal</button> <button class="btn btn--ghost btn--sm" type="button" id="cancelDeal">Cancel</button></span>
+      <button class="mini danger hidden" type="button" id="delDeal">Delete deal</button>
+    </div>
+  </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
+<script>
+(function () {
+  'use strict';
+  var SUPABASE_URL = 'https://zawcqakjlxhkbqumeqwj.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_V-QPJZi-g1X-_lgR9nHCdw_kI60HFgf';
+  var $ = function (id) { return document.getElementById(id); };
+  var STAGES = [
+    { id: 'wishlist', label: 'Wishlist / Target' }, { id: 'pitch', label: 'Pitch Outbound' },
+    { id: 'negotiation', label: 'Negotiation & Rates' }, { id: 'contract', label: 'Contract Sent' },
+    { id: 'production', label: 'Brief & Production' }, { id: 'closed', label: 'Closed & Paid' }
+  ];
+  function stageLabel(id) { for (var i = 0; i < STAGES.length; i++) if (STAGES[i].id === id) return STAGES[i].label; return id || ''; }
+  var CATS = [['media-kit', 'Media kits'], ['analytics', 'Analytics PDFs'], ['logos', 'Logo vectors'], ['rate-cards', 'Rate cards']];
+
+  if (!window.supabase) { $('loginMsg').textContent = 'Could not load. Refresh and try again.'; $('loginMsg').className = 'msg err'; return; }
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  var me = null;
+  var D = { profiles: [], deals: [], kits: {}, wishes: {}, msgs: [] };
+  var selConv = null, selClient = null, editing = null;
+
+  function say(el, t, k) { el.textContent = t || ''; el.className = 'msg' + (k ? ' ' + k : ''); }
+  function h(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) { if (k === 'text') e.textContent = attrs[k]; else if (k === 'class') e.className = attrs[k]; else e.setAttribute(k, attrs[k]); });
+    (kids || []).forEach(function (c) { if (c) e.appendChild(c); });
+    return e;
+  }
+  function money(n) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n || 0); }
+  function fdate(s) { return s ? new Date(String(s).slice(0, 10) + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) : 'TBC'; }
+  function ftime(s) { return new Date(s).toLocaleString('en-AU', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }); }
+  function safeUrl(u) { return /^https?:\/\//i.test(u || '') ? u : '#'; }
+  function profile(id) { for (var i = 0; i < D.profiles.length; i++) if (D.profiles[i].user_id === id) return D.profiles[i]; return null; }
+  function emailOf(id) { var p = profile(id); return p && p.email ? p.email : 'Unknown client'; }
+  function dealOf(id) { for (var i = 0; i < D.deals.length; i++) if (D.deals[i].id === id) return D.deals[i]; return null; }
+  function show(view) {
+    $('authMain').classList.toggle('hidden', view === 'app');
+    $('adminWrap').classList.toggle('hidden', view !== 'app');
+    $('signOut').classList.toggle('hidden', view !== 'app');
+    $('who').classList.toggle('hidden', view !== 'app');
+  }
+
+  /* ---------- auth ---------- */
+  $('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var email = $('email').value.trim(), pw = $('pw').value;
+    if (!email || !pw) { say($('loginMsg'), 'Enter your email and password.', 'err'); return; }
+    $('loginBtn').disabled = true; say($('loginMsg'), 'Signing in...');
+    sb.auth.signInWithPassword({ email: email, password: pw }).then(function (r) {
+      $('loginBtn').disabled = false;
+      if (r.error) say($('loginMsg'), 'That email and password did not match.', 'err'); else { say($('loginMsg'), ''); $('pw').value = ''; }
+    });
+  });
+  $('signOut').addEventListener('click', function () { sb.auth.signOut(); });
+
+  var entering = false;
+  function enter(u) {
+    if (entering) return; entering = true;
+    sb.from('admins').select('user_id').eq('user_id', u.id).maybeSingle().then(function (r) {
+      if (!r.data) {
+        sb.auth.signOut().then(function () { entering = false; show('auth'); say($('loginMsg'), 'This account does not have founder access. Use the client portal instead.', 'err'); });
+        return;
+      }
+      entering = false; me = u; $('who').textContent = u.email || ''; show('app'); loadAll();
+    });
+  }
+
+  /* ---------- data ---------- */
+  function loadAll() {
+    return Promise.all([
+      sb.from('profiles').select('*').order('created_at', { ascending: true }),
+      sb.from('deals').select('*').order('created_at', { ascending: false }),
+      sb.from('media_kits').select('*'),
+      sb.from('wishlists').select('*'),
+      sb.from('deal_messages').select('*').order('created_at', { ascending: true })
+    ]).then(function (r) {
+      D.profiles = r[0].data || []; D.deals = r[1].data || [];
+      D.kits = {}; (r[2].data || []).forEach(function (k) { D.kits[k.user_id] = k; });
+      D.wishes = {}; (r[3].data || []).forEach(function (w) { D.wishes[w.user_id] = w; });
+      D.msgs = r[4].data || [];
+      renderAll();
+    });
+  }
+  function unreadCount() { return D.msgs.filter(function (m) { return m.sender === 'client' && !m.read_by_admin; }).length; }
+
+  function renderAll() {
+    var secured = 0, active = 0;
+    D.deals.forEach(function (d) {
+      if (d.stage === 'contract' || d.stage === 'production' || d.stage === 'closed') secured += Number(d.value) || 0;
+      if (d.stage !== 'wishlist' && d.stage !== 'closed') active++;
+    });
+    var un = unreadCount();
+    $('mUnread').textContent = String(un); $('mClients').textContent = String(D.profiles.length);
+    $('mActive').textContent = String(active); $('mSecured').textContent = money(secured);
+    $('tabDot').textContent = String(un); $('tabDot').classList.toggle('hidden', un === 0);
+    renderConvs(); renderClients(); renderDeals();
+    if (selConv) renderThread(selConv); if (selClient) renderClient(selClient);
+  }
+
+  /* ---------- tabs ---------- */
+  document.querySelectorAll('[data-tab]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var t = b.getAttribute('data-tab');
+      document.querySelectorAll('[data-tab]').forEach(function (x) { x.setAttribute('aria-selected', String(x === b)); });
+      document.querySelectorAll('[data-tab-panel]').forEach(function (p) { p.classList.toggle('hidden', p.getAttribute('data-tab-panel') !== t); });
+    });
+  });
+
+  /* ---------- messages ---------- */
+  function renderConvs() {
+    var el = $('convList'); el.textContent = '';
+    var by = {};
+    D.msgs.forEach(function (m) { (by[m.deal_id] = by[m.deal_id] || []).push(m); });
+    var ids = Object.keys(by).sort(function (a, b) { return by[b][by[b].length - 1].created_at < by[a][by[a].length - 1].created_at ? -1 : 1; });
+    if (!ids.length) { el.appendChild(h('p', { class: 'empty', text: 'No messages yet. Client messages will appear here.' })); return; }
+    ids.forEach(function (id) {
+      var d = dealOf(id); if (!d) return;
+      var list = by[id], last = list[list.length - 1];
+      var un = list.filter(function (m) { return m.sender === 'client' && !m.read_by_admin; }).length;
+      var b = h('button', { type: 'button', class: 'conv' + (un ? ' unread' : '') }, [
+        h('div', { class: 'top' }, [h('span', { text: d.brand }), un ? h('span', { class: 'dot', text: String(un) }) : h('span', { class: 'note', text: ftime(last.created_at) })]),
+        h('div', { class: 'who', text: emailOf(d.user_id) }),
+        h('div', { class: 'snip', text: (last.sender === 'admin' ? 'You: ' : '') + last.body })
+      ]);
+      if (selConv === id) b.setAttribute('aria-current', 'true');
+      b.addEventListener('click', function () { selConv = id; markRead(id); renderConvs(); renderThread(id); });
+      el.appendChild(b);
+    });
+  }
+  function markRead(dealId) {
+    var any = D.msgs.some(function (m) { return m.deal_id === dealId && m.sender === 'client' && !m.read_by_admin; });
+    if (!any) return;
+    D.msgs.forEach(function (m) { if (m.deal_id === dealId && m.sender === 'client') m.read_by_admin = true; });
+    sb.from('deal_messages').update({ read_by_admin: true }).eq('deal_id', dealId).eq('sender', 'client').eq('read_by_admin', false).then(function () {});
+    var un = unreadCount(); $('mUnread').textContent = String(un); $('tabDot').textContent = String(un); $('tabDot').classList.toggle('hidden', un === 0);
+  }
+  function renderThread(dealId) {
+    var d = dealOf(dealId), pane = $('threadPane'); pane.textContent = '';
+    if (!d) { pane.appendChild(h('p', { class: 'empty', text: 'Deal not found.' })); return; }
+    pane.appendChild(h('div', { class: 'page-head', style: 'margin-bottom:0' }, [h('div', null, [
+      h('h2', { text: d.brand, style: 'font-size:1.3rem;font-weight:500' }),
+      h('p', { class: 'note', text: emailOf(d.user_id) + ' · ' + stageLabel(d.stage) })])]));
+    var box = h('div', { class: 'msgs' });
+    D.msgs.filter(function (m) { return m.deal_id === dealId; }).forEach(function (m) {
+      box.appendChild(h('div', { class: 'msgbox' + (m.sender === 'admin' ? ' admin' : '') }, [
+        h('div', { class: 't' }, [h('b', { text: m.sender === 'admin' ? 'You' : emailOf(m.client_id) }), h('span', { text: ftime(m.created_at) })]),
+        h('p', { text: m.body })]));
+    });
+    pane.appendChild(box);
+    var ta = h('textarea', { rows: '3', maxlength: '2000', placeholder: 'Reply to the client', 'aria-label': 'Reply' });
+    var msg = h('span', { class: 'msg' }); msg.style.margin = '0';
+    var send = h('button', { type: 'submit', class: 'btn btn--primary btn--sm', text: 'Send reply' });
+    var form = h('form', null, [ta, h('div', { class: 'replybar' }, [msg, send])]);
+    form.addEventListener('submit', function (e) {
+      e.preventDefault(); var t = ta.value.trim(); if (!t) return;
+      send.disabled = true;
+      sb.from('deal_messages').insert({ deal_id: dealId, client_id: d.user_id, sender: 'admin', body: t, read_by_admin: true }).select().then(function (r) {
+        send.disabled = false;
+        if (r.error || !r.data || !r.data.length) { say(msg, 'Could not send.', 'err'); return; }
+        D.msgs.push(r.data[0]); renderConvs(); renderThread(dealId);
+      });
+    });
+    pane.appendChild(form);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  /* ---------- clients ---------- */
+  function renderClients() {
+    var el = $('clientList'); el.textContent = '';
+    if (!D.profiles.length) { el.appendChild(h('p', { class: 'empty', text: 'No clients yet. Add users in Supabase.' })); return; }
+    D.profiles.forEach(function (p) {
+      var n = D.deals.filter(function (d) { return d.user_id === p.user_id; }).length;
+      var b = h('button', { type: 'button', class: 'conv' }, [
+        h('div', { class: 'top' }, [h('span', { text: p.name || p.email || 'Client' }), h('span', { class: 'note', text: n + (n === 1 ? ' deal' : ' deals') })]),
+        h('div', { class: 'who', text: p.email || '' })
+      ]);
+      if (selClient === p.user_id) b.setAttribute('aria-current', 'true');
+      b.addEventListener('click', function () { selClient = p.user_id; renderClients(); renderClient(p.user_id); });
+      el.appendChild(b);
+    });
+  }
+  function kv(label, val) { return h('div', null, [h('span', { text: label }), document.createTextNode(val == null || val === '' ? '–' : String(val))]); }
+  function renderClient(id) {
+    var p = profile(id), k = D.kits[id] || {}, w = D.wishes[id] || {}, pane = $('clientPane'); pane.textContent = '';
+    if (!p) return;
+    pane.appendChild(h('h2', { text: p.email || 'Client', style: 'font-size:1.3rem;font-weight:500' }));
+    var add = h('button', { type: 'button', class: 'btn btn--ghost btn--sm', text: 'Add deal for this client' });
+    add.addEventListener('click', function () { openForm(null, id); });
+    pane.appendChild(h('div', { class: 'row-actions' }, [add]));
+
+    pane.appendChild(h('h3', { class: 'eyebrow', text: 'Media kit', style: 'margin-top:22px' }));
+    pane.appendChild(h('div', { class: 'kv' }, [
+      kv('YouTube subscribers', k.youtube_subs), kv('Average views', k.avg_views), kv('Instagram followers', k.ig_followers),
+      kv('Engagement %', k.ig_engagement), kv('Dedicated video rate', k.rate_video != null ? money(k.rate_video) : ''),
+      kv('Integration rate', k.rate_integration != null ? money(k.rate_integration) : ''), kv('Social post rate', k.rate_social != null ? money(k.rate_social) : ''),
+      kv('Audience: pilots / sim / GA / aero', [k.aud_pilots, k.aud_sim, k.aud_ga, k.aud_aero].map(function (x) { return x == null ? '-' : x + '%'; }).join(' / '))
+    ]));
+    if (k.kit_url) { pane.appendChild(h('a', { class: 'doc', href: safeUrl(k.kit_url), target: '_blank', rel: 'noopener noreferrer', style: 'margin-top:12px' }, [h('span', { text: 'Media kit link' }), h('span', { text: 'Open' })])); }
+
+    pane.appendChild(h('h3', { class: 'eyebrow', text: 'Brand wishlist', style: 'margin-top:22px' }));
+    function tags(list, red) { var r = h('div', { class: 'tagrow' }); (list || []).forEach(function (t) { r.appendChild(h('span', { class: 'tag' + (red ? ' red' : ''), text: t, style: 'padding-right:12px' })); }); if (!(list || []).length) r.appendChild(h('span', { class: 'note', text: 'None yet' })); return r; }
+    pane.appendChild(h('p', { class: 'note', text: 'Dream brands', style: 'margin-top:8px' })); pane.appendChild(tags(w.dream_brands, false));
+    pane.appendChild(h('p', { class: 'note', text: 'Prohibited categories', style: 'margin-top:10px' })); pane.appendChild(tags(w.prohibited, true));
+    pane.appendChild(h('p', { class: 'note', text: 'Preferred formats', style: 'margin-top:10px' })); pane.appendChild(tags(w.formats, false));
+
+    pane.appendChild(h('h3', { class: 'eyebrow', text: 'Files', style: 'margin-top:22px' }));
+    var files = h('div', null, [h('p', { class: 'note', text: 'Loading files...' })]); pane.appendChild(files);
+    Promise.all(CATS.map(function (c) { return sb.storage.from('vault').list(id + '/' + c[0], { limit: 100 }).then(function (r) { return { cat: c, items: (r.data || []).filter(function (f) { return f.name && f.name.charAt(0) !== '.'; }) }; }); })).then(function (all) {
+      if (selClient !== id) return; files.textContent = '';
+      var any = false;
+      all.forEach(function (g) {
+        g.items.forEach(function (f) {
+          any = true; var path = id + '/' + g.cat[0] + '/' + f.name;
+          var b = h('button', { type: 'button', class: 'mini', text: 'Download' });
+          b.addEventListener('click', function () { sb.storage.from('vault').createSignedUrl(path, 60, { download: true }).then(function (x) { if (x.data && x.data.signedUrl) window.location.href = x.data.signedUrl; }); });
+          files.appendChild(h('div', { class: 'file' }, [h('span', { class: 'nm', text: g.cat[1] + ': ' + f.name.replace(/^\d+_/, '') }), b]));
+        });
+      });
+      if (!any) files.appendChild(h('p', { class: 'note', text: 'No files uploaded.' }));
+    });
+
+    pane.appendChild(h('h3', { class: 'eyebrow', text: 'Deals', style: 'margin-top:22px' }));
+    var mine = D.deals.filter(function (d) { return d.user_id === id; });
+    if (!mine.length) pane.appendChild(h('p', { class: 'note', text: 'No deals yet.' }));
+    mine.forEach(function (d) {
+      var b = h('button', { type: 'button', class: 'deal' }, [h('div', { class: 'n', text: d.brand }), h('div', { class: 'p', text: d.package + ' · ' + stageLabel(d.stage) }),
+        h('div', { class: 'f' }, [h('span', { text: Number(d.value) > 0 ? money(d.value) : 'TBC' }), h('span', { text: fdate(d.air_date) })])]);
+      b.addEventListener('click', function () { openForm(d); }); pane.appendChild(b);
+    });
+  }
+
+  /* ---------- all deals ---------- */
+  function renderDeals() {
+    var rows = $('allDeals'); rows.textContent = '';
+    $('noDeals').classList.toggle('hidden', D.deals.length > 0);
+    D.deals.forEach(function (d) {
+      var sel = h('select', { 'aria-label': 'Stage for ' + d.brand });
+      STAGES.forEach(function (s) { var o = h('option', { value: s.id, text: s.label }); if (s.id === d.stage) o.selected = true; sel.appendChild(o); });
+      sel.addEventListener('change', function () {
+        sb.from('deals').update({ stage: sel.value }).eq('id', d.id).then(function (r) { if (r.error) { sel.value = d.stage; } else { d.stage = sel.value; renderAll(); } });
+      });
+      var edit = h('button', { type: 'button', class: 'mini', text: 'Edit' }); edit.addEventListener('click', function () { openForm(d); });
+      rows.appendChild(h('tr', null, [h('td', { text: emailOf(d.user_id) }), h('td', { text: d.brand }), h('td', { text: d.package || '' }),
+        h('td', { text: Number(d.value) > 0 ? money(d.value) : 'TBC' }), h('td', null, [sel]), h('td', { text: fdate(d.air_date) }), h('td', null, [edit])]));
+    });
+  }
+
+  /* ---------- deal editor ---------- */
+  STAGES.forEach(function (s) { $('f_stage').appendChild(h('option', { value: s.id, text: s.label })); });
+  function openForm(d, clientId) {
+    editing = d || null;
+    var cs = $('f_client'); cs.textContent = '';
+    D.profiles.forEach(function (p) { cs.appendChild(h('option', { value: p.user_id, text: p.email || p.user_id })); });
+    cs.value = d ? d.user_id : (clientId || (D.profiles[0] && D.profiles[0].user_id) || ''); cs.disabled = !!d;
+    $('mTitle').textContent = d ? 'Edit deal' : 'Add deal';
+    $('f_brand').value = d ? d.brand : ''; $('f_pkg').value = d && d.package ? d.package : 'Dedicated Video';
+    $('f_value').value = d && d.value != null ? d.value : ''; $('f_stage').value = d ? d.stage : 'pitch';
+    $('f_air').value = d && d.air_date ? d.air_date : ''; $('f_brief').value = d && d.brief ? d.brief : '';
+    $('f_docs').value = d && Array.isArray(d.docs) ? d.docs.map(function (x) { return (x.label || 'Document') + ' | ' + (x.url || ''); }).join('\n') : '';
+    $('delDeal').classList.toggle('hidden', !d); $('delDeal').textContent = 'Delete deal'; $('delDeal').classList.remove('confirm');
+    say($('formMsg'), ''); $('modal').classList.remove('hidden'); $('f_brand').focus();
+  }
+  function closeForm() { $('modal').classList.add('hidden'); }
+  $('newDeal').addEventListener('click', function () { openForm(null); });
+  $('cancelDeal').addEventListener('click', closeForm);
+  $('modal').addEventListener('click', function (e) { if (e.target === $('modal')) closeForm(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('modal').classList.contains('hidden')) closeForm(); });
+
+  $('dealForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var brand = $('f_brand').value.trim();
+    if (!brand) { say($('formMsg'), 'Enter a brand name.', 'err'); return; }
+    if (!$('f_client').value) { say($('formMsg'), 'Pick a client. Add users in Supabase first.', 'err'); return; }
+    var docs = [], bad = false;
+    $('f_docs').value.split('\n').forEach(function (line) {
+      line = line.trim(); if (!line) return;
+      var i = line.lastIndexOf('|'), label = i > -1 ? line.slice(0, i).trim() : 'Document', url = (i > -1 ? line.slice(i + 1) : line).trim();
+      if (!/^https?:\/\//i.test(url)) { bad = true; return; }
+      docs.push({ label: label || 'Document', url: url });
+    });
+    if (bad) { say($('formMsg'), 'Each document needs a link starting with https://', 'err'); return; }
+    var row = { brand: brand, package: $('f_pkg').value, value: $('f_value').value === '' ? 0 : Number($('f_value').value),
+      stage: $('f_stage').value, air_date: $('f_air').value || null, brief: $('f_brief').value.trim() || null, docs: docs };
+    $('saveDeal').disabled = true; say($('formMsg'), 'Saving...');
+    var q = editing ? sb.from('deals').update(row).eq('id', editing.id) : sb.from('deals').insert(Object.assign({ user_id: $('f_client').value }, row));
+    q.then(function (r) {
+      $('saveDeal').disabled = false;
+      if (r.error) { say($('formMsg'), 'Could not save: ' + r.error.message, 'err'); return; }
+      closeForm(); loadAll();
+    });
+  });
+  $('delDeal').addEventListener('click', function () {
+    var b = $('delDeal');
+    if (!b.classList.contains('confirm')) { b.classList.add('confirm'); b.textContent = 'Click again to delete'; return; }
+    sb.from('deals').delete().eq('id', editing.id).then(function (r) { if (r.error) { say($('formMsg'), 'Could not delete.', 'err'); return; } closeForm(); selConv = null; loadAll(); });
+  });
+
+  /* ---------- session ---------- */
+  sb.auth.onAuthStateChange(function (event, session) {
+    if (event === 'SIGNED_OUT') { me = null; entering = false; show('auth'); return; }
+    if (session && session.user && (!me || me.id !== session.user.id)) enter(session.user);
+  });
+  sb.auth.getSession().then(function (r) { if (!r.data.session) show('auth'); else if (!me && !entering) enter(r.data.session.user); });
+})();
+</script>
+</body>
+</html>

@@ -72,6 +72,9 @@
   .nav-links a { transition: color .2s; }
   .nav-links a:hover { color: var(--fg); }
   @media (max-width: 640px) { .nav-links .hide-sm { display: none; } }
+  .login-link { display: inline-flex; align-items: center; gap: 7px; transition: color .2s; }
+  .login-link:hover { color: var(--accent); }
+  @media (max-width: 640px) { .login-link span { display: none; } .login-link { padding: 10px; margin-right: -6px; } }
 
   /* buttons */
   .btn {
@@ -249,6 +252,7 @@
     <div class="nav-links">
       <a class="hide-sm" href="#why">Why AeroReach</a>
       <a class="hide-sm" href="#estimator">Estimator</a>
+      <a class="login-link" href="/portal" aria-label="Client Portal login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg><span>Client Portal</span></a>
       <button class="btn btn--primary btn--sm" type="button" data-open-drawer>Contact</button>
     </div>
   </div>
@@ -359,6 +363,7 @@
       <nav aria-label="Footer">
         <a href="#why">Why AeroReach</a>
         <a href="#estimator">Estimator</a>
+        <a href="/portal">Client Portal</a>
         <button type="button" data-open-drawer>Contact</button>
       </nav>
     </div>

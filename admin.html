@@ -314,7 +314,8 @@
 <div class="modal hidden" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
   <form class="box" id="dealForm" novalidate>
     <h2 id="mTitle" style="font-size:1.3rem;font-weight:500;letter-spacing:-.02em">Add deal</h2>
-    <label for="f_client" style="margin-top:14px">Client<select id="f_client"></select></label>
+    <label for="f_client" style="margin-top:14px">Creator<select id="f_client"></select></label>
+    <label for="f_brandacct">Brand account (optional, lets the brand see this campaign)<select id="f_brandacct"></select></label>
     <div class="grid2">
       <label for="f_brand">Brand<input id="f_brand" type="text" maxlength="80"></label>
       <label for="f_pkg">Package<select id="f_pkg"><option>Dedicated Video</option><option>Integration</option><option>Short / Social Post</option><option>Newsletter</option></select></label>
@@ -350,7 +351,7 @@
   if (!window.supabase) { $('loginMsg').textContent = 'Could not load. Refresh and try again.'; $('loginMsg').className = 'msg err'; return; }
   var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   var me = null;
-  var D = { profiles: [], deals: [], kits: {}, wishes: {}, msgs: [] };
+  var D = { profiles: [], deals: [], kits: {}, wishes: {}, msgs: [], brands: [] };
   var selConv = null, selClient = null, editing = null;
 
   function say(el, t, k) { el.textContent = t || ''; el.className = 'msg' + (k ? ' ' + k : ''); }
@@ -406,16 +407,19 @@
       sb.from('deals').select('*').order('created_at', { ascending: false }),
       sb.from('media_kits').select('*'),
       sb.from('wishlists').select('*'),
-      sb.from('deal_messages').select('*').order('created_at', { ascending: true })
+      sb.from('deal_messages').select('*').order('created_at', { ascending: true }),
+      sb.from('brands').select('*')
     ]).then(function (r) {
       D.profiles = r[0].data || []; D.deals = r[1].data || [];
       D.kits = {}; (r[2].data || []).forEach(function (k) { D.kits[k.user_id] = k; });
       D.wishes = {}; (r[3].data || []).forEach(function (w) { D.wishes[w.user_id] = w; });
-      D.msgs = r[4].data || [];
+      D.msgs = r[4].data || []; D.brands = r[5].data || [];
       renderAll();
     });
   }
-  function unreadCount() { return D.msgs.filter(function (m) { return m.sender === 'client' && !m.read_by_admin; }).length; }
+  function unreadCount() { return D.msgs.filter(function (m) { return m.sender !== 'admin' && !m.read_by_admin; }).length; }
+  function isBrand(id) { return D.brands.some(function (b) { return b.user_id === id; }); }
+  function brandName(id) { for (var i = 0; i < D.brands.length; i++) if (D.brands[i].user_id === id) return D.brands[i].company || emailOf(id); return emailOf(id); }
 
   function renderAll() {
     var secured = 0, active = 0;
@@ -441,57 +445,61 @@
   });
 
   /* ---------- messages ---------- */
+  function convKey(m) { return m.deal_id + '|' + m.client_id; }
   function renderConvs() {
     var el = $('convList'); el.textContent = '';
     var by = {};
-    D.msgs.forEach(function (m) { (by[m.deal_id] = by[m.deal_id] || []).push(m); });
-    var ids = Object.keys(by).sort(function (a, b) { return by[b][by[b].length - 1].created_at < by[a][by[a].length - 1].created_at ? -1 : 1; });
-    if (!ids.length) { el.appendChild(h('p', { class: 'empty', text: 'No messages yet. Client messages will appear here.' })); return; }
-    ids.forEach(function (id) {
-      var d = dealOf(id); if (!d) return;
-      var list = by[id], last = list[list.length - 1];
-      var un = list.filter(function (m) { return m.sender === 'client' && !m.read_by_admin; }).length;
+    D.msgs.forEach(function (m) { var k = convKey(m); (by[k] = by[k] || []).push(m); });
+    var keys = Object.keys(by).sort(function (a, b) { var la = by[a][by[a].length - 1].created_at, lb = by[b][by[b].length - 1].created_at; return lb < la ? -1 : 1; });
+    if (!keys.length) { el.appendChild(h('p', { class: 'empty', text: 'No messages yet. Client and brand messages will appear here.' })); return; }
+    keys.forEach(function (k) {
+      var list = by[k], last = list[list.length - 1], d = dealOf(list[0].deal_id); if (!d) return;
+      var un = list.filter(function (m) { return m.sender !== 'admin' && !m.read_by_admin; }).length;
+      var who = (isBrand(list[0].client_id) ? 'Brand: ' + brandName(list[0].client_id) : emailOf(list[0].client_id));
       var b = h('button', { type: 'button', class: 'conv' + (un ? ' unread' : '') }, [
         h('div', { class: 'top' }, [h('span', { text: d.brand }), un ? h('span', { class: 'dot', text: String(un) }) : h('span', { class: 'note', text: ftime(last.created_at) })]),
-        h('div', { class: 'who', text: emailOf(d.user_id) }),
+        h('div', { class: 'who', text: who }),
         h('div', { class: 'snip', text: (last.sender === 'admin' ? 'You: ' : '') + last.body })
       ]);
-      if (selConv === id) b.setAttribute('aria-current', 'true');
-      b.addEventListener('click', function () { selConv = id; markRead(id); renderConvs(); renderThread(id); });
+      if (selConv === k) b.setAttribute('aria-current', 'true');
+      b.addEventListener('click', function () { selConv = k; markRead(k); renderConvs(); renderThread(k); });
       el.appendChild(b);
     });
   }
-  function markRead(dealId) {
-    var any = D.msgs.some(function (m) { return m.deal_id === dealId && m.sender === 'client' && !m.read_by_admin; });
+  function markRead(k) {
+    var parts = k.split('|');
+    var any = D.msgs.some(function (m) { return convKey(m) === k && m.sender !== 'admin' && !m.read_by_admin; });
     if (!any) return;
-    D.msgs.forEach(function (m) { if (m.deal_id === dealId && m.sender === 'client') m.read_by_admin = true; });
-    sb.from('deal_messages').update({ read_by_admin: true }).eq('deal_id', dealId).eq('sender', 'client').eq('read_by_admin', false).then(function () {});
+    D.msgs.forEach(function (m) { if (convKey(m) === k && m.sender !== 'admin') m.read_by_admin = true; });
+    sb.from('deal_messages').update({ read_by_admin: true }).eq('deal_id', parts[0]).eq('client_id', parts[1]).neq('sender', 'admin').eq('read_by_admin', false).then(function () {});
     var un = unreadCount(); $('mUnread').textContent = String(un); $('tabDot').textContent = String(un); $('tabDot').classList.toggle('hidden', un === 0);
   }
-  function renderThread(dealId) {
+  function renderThread(k) {
+    var parts = k.split('|'), dealId = parts[0], clientId = parts[1];
     var d = dealOf(dealId), pane = $('threadPane'); pane.textContent = '';
     if (!d) { pane.appendChild(h('p', { class: 'empty', text: 'Deal not found.' })); return; }
+    var brand = isBrand(clientId);
     pane.appendChild(h('div', { class: 'page-head', style: 'margin-bottom:0' }, [h('div', null, [
       h('h2', { text: d.brand, style: 'font-size:1.3rem;font-weight:500' }),
-      h('p', { class: 'note', text: emailOf(d.user_id) + ' · ' + stageLabel(d.stage) })])]));
+      h('p', { class: 'note', text: (brand ? 'Brand: ' + brandName(clientId) : emailOf(clientId)) + ' · ' + stageLabel(d.stage) })])]));
     var box = h('div', { class: 'msgs' });
-    D.msgs.filter(function (m) { return m.deal_id === dealId; }).forEach(function (m) {
+    D.msgs.filter(function (m) { return convKey(m) === k; }).forEach(function (m) {
       box.appendChild(h('div', { class: 'msgbox' + (m.sender === 'admin' ? ' admin' : '') }, [
-        h('div', { class: 't' }, [h('b', { text: m.sender === 'admin' ? 'You' : emailOf(m.client_id) }), h('span', { text: ftime(m.created_at) })]),
+        h('div', { class: 't' }, [h('b', { text: m.sender === 'admin' ? 'You' : (brand ? brandName(clientId) : emailOf(clientId)) }), h('span', { text: ftime(m.created_at) })]),
         h('p', { text: m.body })]));
     });
     pane.appendChild(box);
-    var ta = h('textarea', { rows: '3', maxlength: '2000', placeholder: 'Reply to the client', 'aria-label': 'Reply' });
+    var ta = h('textarea', { rows: '3', maxlength: '2000', placeholder: brand ? 'Reply to the brand' : 'Reply to the client', 'aria-label': 'Reply' });
     var msg = h('span', { class: 'msg' }); msg.style.margin = '0';
     var send = h('button', { type: 'submit', class: 'btn btn--primary btn--sm', text: 'Send reply' });
     var form = h('form', null, [ta, h('div', { class: 'replybar' }, [msg, send])]);
     form.addEventListener('submit', function (e) {
       e.preventDefault(); var t = ta.value.trim(); if (!t) return;
       send.disabled = true;
-      sb.from('deal_messages').insert({ deal_id: dealId, client_id: d.user_id, sender: 'admin', body: t, read_by_admin: true }).select().then(function (r) {
+      sb.from('deal_messages').insert({ deal_id: dealId, client_id: clientId, sender: 'admin', body: t, read_by_admin: true }).select().then(function (r) {
         send.disabled = false;
         if (r.error || !r.data || !r.data.length) { say(msg, 'Could not send.', 'err'); return; }
-        D.msgs.push(r.data[0]); renderConvs(); renderThread(dealId);
+        D.msgs.push(r.data[0]); renderConvs(); renderThread(k);
       });
     });
     pane.appendChild(form);
@@ -501,11 +509,13 @@
   /* ---------- clients ---------- */
   function renderClients() {
     var el = $('clientList'); el.textContent = '';
-    if (!D.profiles.length) { el.appendChild(h('p', { class: 'empty', text: 'No clients yet. Add users in Supabase.' })); return; }
+    if (!D.profiles.length) { el.appendChild(h('p', { class: 'empty', text: 'No accounts yet. Add users in Supabase.' })); return; }
     D.profiles.forEach(function (p) {
-      var n = D.deals.filter(function (d) { return d.user_id === p.user_id; }).length;
+      var brand = isBrand(p.user_id);
+      var n = D.deals.filter(function (d) { return brand ? d.brand_user_id === p.user_id : d.user_id === p.user_id; }).length;
       var b = h('button', { type: 'button', class: 'conv' }, [
-        h('div', { class: 'top' }, [h('span', { text: p.name || p.email || 'Client' }), h('span', { class: 'note', text: n + (n === 1 ? ' deal' : ' deals') })]),
+        h('div', { class: 'top' }, [h('span', { text: brand ? brandName(p.user_id) : (p.channel_name || p.name || p.email || 'Client') }),
+          h('span', { class: 'badge' + (brand ? ' live' : ''), text: brand ? 'Brand' : n + (n === 1 ? ' deal' : ' deals') })]),
         h('div', { class: 'who', text: p.email || '' })
       ]);
       if (selClient === p.user_id) b.setAttribute('aria-current', 'true');
@@ -517,49 +527,91 @@
   function renderClient(id) {
     var p = profile(id), k = D.kits[id] || {}, w = D.wishes[id] || {}, pane = $('clientPane'); pane.textContent = '';
     if (!p) return;
-    pane.appendChild(h('h2', { text: p.email || 'Client', style: 'font-size:1.3rem;font-weight:500' }));
-    var add = h('button', { type: 'button', class: 'btn btn--ghost btn--sm', text: 'Add deal for this client' });
-    add.addEventListener('click', function () { openForm(null, id); });
-    pane.appendChild(h('div', { class: 'row-actions' }, [add]));
+    var brand = isBrand(id);
+    pane.appendChild(h('h2', { text: brand ? brandName(id) : (p.email || 'Client'), style: 'font-size:1.3rem;font-weight:500' }));
+    pane.appendChild(h('p', { class: 'note', text: (p.email || '') + (brand ? ' · Brand account' : ' · Creator account') }));
 
-    pane.appendChild(h('h3', { class: 'eyebrow', text: 'Media kit', style: 'margin-top:22px' }));
-    pane.appendChild(h('div', { class: 'kv' }, [
-      kv('YouTube subscribers', k.youtube_subs), kv('Average views', k.avg_views), kv('Instagram followers', k.ig_followers),
-      kv('Engagement %', k.ig_engagement), kv('Dedicated video rate', k.rate_video != null ? money(k.rate_video) : ''),
-      kv('Integration rate', k.rate_integration != null ? money(k.rate_integration) : ''), kv('Social post rate', k.rate_social != null ? money(k.rate_social) : ''),
-      kv('Audience: pilots / sim / GA / aero', [k.aud_pilots, k.aud_sim, k.aud_ga, k.aud_aero].map(function (x) { return x == null ? '-' : x + '%'; }).join(' / '))
-    ]));
-    if (k.kit_url) { pane.appendChild(h('a', { class: 'doc', href: safeUrl(k.kit_url), target: '_blank', rel: 'noopener noreferrer', style: 'margin-top:12px' }, [h('span', { text: 'Media kit link' }), h('span', { text: 'Open' })])); }
+    if (!brand) {
+      var add = h('button', { type: 'button', class: 'btn btn--ghost btn--sm', text: 'Add deal for this creator' });
+      add.addEventListener('click', function () { openForm(null, id); });
+      pane.appendChild(h('div', { class: 'row-actions' }, [add]));
 
-    pane.appendChild(h('h3', { class: 'eyebrow', text: 'Brand wishlist', style: 'margin-top:22px' }));
-    function tags(list, red) { var r = h('div', { class: 'tagrow' }); (list || []).forEach(function (t) { r.appendChild(h('span', { class: 'tag' + (red ? ' red' : ''), text: t, style: 'padding-right:12px' })); }); if (!(list || []).length) r.appendChild(h('span', { class: 'note', text: 'None yet' })); return r; }
-    pane.appendChild(h('p', { class: 'note', text: 'Dream brands', style: 'margin-top:8px' })); pane.appendChild(tags(w.dream_brands, false));
-    pane.appendChild(h('p', { class: 'note', text: 'Prohibited categories', style: 'margin-top:10px' })); pane.appendChild(tags(w.prohibited, true));
-    pane.appendChild(h('p', { class: 'note', text: 'Preferred formats', style: 'margin-top:10px' })); pane.appendChild(tags(w.formats, false));
-
-    pane.appendChild(h('h3', { class: 'eyebrow', text: 'Files', style: 'margin-top:22px' }));
-    var files = h('div', null, [h('p', { class: 'note', text: 'Loading files...' })]); pane.appendChild(files);
-    Promise.all(CATS.map(function (c) { return sb.storage.from('vault').list(id + '/' + c[0], { limit: 100 }).then(function (r) { return { cat: c, items: (r.data || []).filter(function (f) { return f.name && f.name.charAt(0) !== '.'; }) }; }); })).then(function (all) {
-      if (selClient !== id) return; files.textContent = '';
-      var any = false;
-      all.forEach(function (g) {
-        g.items.forEach(function (f) {
-          any = true; var path = id + '/' + g.cat[0] + '/' + f.name;
-          var b = h('button', { type: 'button', class: 'mini', text: 'Download' });
-          b.addEventListener('click', function () { sb.storage.from('vault').createSignedUrl(path, 60, { download: true }).then(function (x) { if (x.data && x.data.signedUrl) window.location.href = x.data.signedUrl; }); });
-          files.appendChild(h('div', { class: 'file' }, [h('span', { class: 'nm', text: g.cat[1] + ': ' + f.name.replace(/^\d+_/, '') }), b]));
+      // Roster listing (what brands see)
+      pane.appendChild(h('h3', { class: 'eyebrow', text: 'Brand roster listing', style: 'margin-top:22px' }));
+      var cn = h('input', { type: 'text', maxlength: '80', placeholder: 'Channel name' }); cn.value = p.channel_name || '';
+      var nc = h('input', { type: 'text', maxlength: '80', placeholder: 'Niche, e.g. Airline operations' }); nc.value = p.niche || '';
+      var lc = h('input', { type: 'checkbox' }); lc.checked = !!p.listed;
+      var lmsg = h('span', { class: 'msg' }); lmsg.style.margin = '0';
+      var lsave = h('button', { type: 'button', class: 'btn btn--primary btn--sm', text: 'Save listing' });
+      lsave.addEventListener('click', function () {
+        var row = { channel_name: cn.value.trim() || null, niche: nc.value.trim() || null, listed: lc.checked };
+        sb.from('profiles').update(row).eq('user_id', id).then(function (r) {
+          if (r.error) { say(lmsg, 'Could not save.', 'err'); return; }
+          p.channel_name = row.channel_name; p.niche = row.niche; p.listed = row.listed; say(lmsg, 'Saved.', 'ok'); renderClients();
         });
       });
-      if (!any) files.appendChild(h('p', { class: 'note', text: 'No files uploaded.' }));
-    });
+      pane.appendChild(h('div', { class: 'grid2' }, [h('label', { text: 'Channel name' }, [cn]), h('label', { text: 'Niche' }, [nc])]));
+      pane.appendChild(h('label', { class: 'check', style: 'margin-top:12px' }, [lc, document.createTextNode('Show this creator to brands (only if they agreed)')]));
+      pane.appendChild(h('div', { class: 'replybar' }, [lmsg, lsave]));
 
-    pane.appendChild(h('h3', { class: 'eyebrow', text: 'Deals', style: 'margin-top:22px' }));
-    var mine = D.deals.filter(function (d) { return d.user_id === id; });
+      pane.appendChild(h('h3', { class: 'eyebrow', text: 'Media kit', style: 'margin-top:22px' }));
+      pane.appendChild(h('div', { class: 'kv' }, [
+        kv('YouTube subscribers', k.youtube_subs), kv('Average views', k.avg_views), kv('Instagram followers', k.ig_followers),
+        kv('Engagement %', k.ig_engagement), kv('Dedicated video rate', k.rate_video != null ? money(k.rate_video) : ''),
+        kv('Integration rate', k.rate_integration != null ? money(k.rate_integration) : ''), kv('Social post rate', k.rate_social != null ? money(k.rate_social) : ''),
+        kv('Audience: pilots / sim / GA / aero', [k.aud_pilots, k.aud_sim, k.aud_ga, k.aud_aero].map(function (x) { return x == null ? '-' : x + '%'; }).join(' / '))
+      ]));
+      if (k.kit_url) { pane.appendChild(h('a', { class: 'doc', href: safeUrl(k.kit_url), target: '_blank', rel: 'noopener noreferrer', style: 'margin-top:12px' }, [h('span', { text: 'Media kit link' }), h('span', { text: 'Open' })])); }
+
+      pane.appendChild(h('h3', { class: 'eyebrow', text: 'Brand wishlist', style: 'margin-top:22px' }));
+      function tags(list, red) { var r = h('div', { class: 'tagrow' }); (list || []).forEach(function (t) { r.appendChild(h('span', { class: 'tag' + (red ? ' red' : ''), text: t, style: 'padding-right:12px' })); }); if (!(list || []).length) r.appendChild(h('span', { class: 'note', text: 'None yet' })); return r; }
+      pane.appendChild(h('p', { class: 'note', text: 'Dream brands', style: 'margin-top:8px' })); pane.appendChild(tags(w.dream_brands, false));
+      pane.appendChild(h('p', { class: 'note', text: 'Prohibited categories', style: 'margin-top:10px' })); pane.appendChild(tags(w.prohibited, true));
+      pane.appendChild(h('p', { class: 'note', text: 'Preferred formats', style: 'margin-top:10px' })); pane.appendChild(tags(w.formats, false));
+
+      pane.appendChild(h('h3', { class: 'eyebrow', text: 'Files', style: 'margin-top:22px' }));
+      var files = h('div', null, [h('p', { class: 'note', text: 'Loading files...' })]); pane.appendChild(files);
+      Promise.all(CATS.map(function (c) { return sb.storage.from('vault').list(id + '/' + c[0], { limit: 100 }).then(function (r) { return { cat: c, items: (r.data || []).filter(function (f) { return f.name && f.name.charAt(0) !== '.'; }) }; }); })).then(function (all) {
+        if (selClient !== id) return; files.textContent = '';
+        var any = false;
+        all.forEach(function (g) {
+          g.items.forEach(function (f) {
+            any = true; var path = id + '/' + g.cat[0] + '/' + f.name;
+            var b = h('button', { type: 'button', class: 'mini', text: 'Download' });
+            b.addEventListener('click', function () { sb.storage.from('vault').createSignedUrl(path, 60, { download: true }).then(function (x) { if (x.data && x.data.signedUrl) window.location.href = x.data.signedUrl; }); });
+            files.appendChild(h('div', { class: 'file' }, [h('span', { class: 'nm', text: g.cat[1] + ': ' + f.name.replace(/^\d+_/, '') }), b]));
+          });
+        });
+        if (!any) files.appendChild(h('p', { class: 'note', text: 'No files uploaded.' }));
+      });
+
+      // Make brand
+      pane.appendChild(h('h3', { class: 'eyebrow', text: 'Account type', style: 'margin-top:22px' }));
+      var co = h('input', { type: 'text', maxlength: '80', placeholder: 'Company name' });
+      var mk = h('button', { type: 'button', class: 'btn btn--ghost btn--sm', text: 'Make this a brand account' });
+      var mmsg = h('span', { class: 'msg' }); mmsg.style.margin = '0';
+      mk.addEventListener('click', function () {
+        var c = co.value.trim(); if (!c) { say(mmsg, 'Enter the company name first.', 'err'); return; }
+        sb.from('brands').insert({ user_id: id, company: c }).then(function (r) { if (r.error) { say(mmsg, 'Could not save.', 'err'); return; } loadAll(); });
+      });
+      pane.appendChild(h('div', { class: 'row-actions' }, [co, mk])); pane.appendChild(mmsg);
+    } else {
+      pane.appendChild(h('p', { class: 'note', text: 'Brands see the creator roster, their own campaigns, and message you. To give this brand a campaign, add a deal and pick this brand under "Brand account".', style: 'margin-top:12px' }));
+      var un = h('button', { type: 'button', class: 'mini danger', text: 'Remove brand access' });
+      un.addEventListener('click', function () {
+        if (!un.classList.contains('confirm')) { un.classList.add('confirm'); un.textContent = 'Click again to confirm'; return; }
+        sb.from('brands').delete().eq('user_id', id).then(function () { loadAll(); });
+      });
+      pane.appendChild(h('div', { class: 'row-actions' }, [un]));
+    }
+
+    pane.appendChild(h('h3', { class: 'eyebrow', text: brand ? 'Campaigns' : 'Deals', style: 'margin-top:22px' }));
+    var mine = D.deals.filter(function (d) { return brand ? d.brand_user_id === id : d.user_id === id; });
     if (!mine.length) pane.appendChild(h('p', { class: 'note', text: 'No deals yet.' }));
     mine.forEach(function (d) {
-      var b = h('button', { type: 'button', class: 'deal' }, [h('div', { class: 'n', text: d.brand }), h('div', { class: 'p', text: d.package + ' · ' + stageLabel(d.stage) }),
+      var bt = h('button', { type: 'button', class: 'deal' }, [h('div', { class: 'n', text: d.brand }), h('div', { class: 'p', text: d.package + ' · ' + stageLabel(d.stage) }),
         h('div', { class: 'f' }, [h('span', { text: Number(d.value) > 0 ? money(d.value) : 'TBC' }), h('span', { text: fdate(d.air_date) })])]);
-      b.addEventListener('click', function () { openForm(d); }); pane.appendChild(b);
+      bt.addEventListener('click', function () { openForm(d); }); pane.appendChild(bt);
     });
   }
 
@@ -574,7 +626,7 @@
         sb.from('deals').update({ stage: sel.value }).eq('id', d.id).then(function (r) { if (r.error) { sel.value = d.stage; } else { d.stage = sel.value; renderAll(); } });
       });
       var edit = h('button', { type: 'button', class: 'mini', text: 'Edit' }); edit.addEventListener('click', function () { openForm(d); });
-      rows.appendChild(h('tr', null, [h('td', { text: emailOf(d.user_id) }), h('td', { text: d.brand }), h('td', { text: d.package || '' }),
+      rows.appendChild(h('tr', null, [h('td', { text: emailOf(d.user_id) + (d.brand_user_id ? '  → ' + brandName(d.brand_user_id) : '') }), h('td', { text: d.brand }), h('td', { text: d.package || '' }),
         h('td', { text: Number(d.value) > 0 ? money(d.value) : 'TBC' }), h('td', null, [sel]), h('td', { text: fdate(d.air_date) }), h('td', null, [edit])]));
     });
   }
@@ -584,8 +636,11 @@
   function openForm(d, clientId) {
     editing = d || null;
     var cs = $('f_client'); cs.textContent = '';
-    D.profiles.forEach(function (p) { cs.appendChild(h('option', { value: p.user_id, text: p.email || p.user_id })); });
-    cs.value = d ? d.user_id : (clientId || (D.profiles[0] && D.profiles[0].user_id) || ''); cs.disabled = !!d;
+    D.profiles.filter(function (p) { return !isBrand(p.user_id); }).forEach(function (p) { cs.appendChild(h('option', { value: p.user_id, text: p.email || p.user_id })); });
+    var bs = $('f_brandacct'); bs.textContent = ''; bs.appendChild(h('option', { value: '', text: 'None' }));
+    D.brands.forEach(function (b) { bs.appendChild(h('option', { value: b.user_id, text: (b.company || emailOf(b.user_id)) })); });
+    bs.value = d && d.brand_user_id ? d.brand_user_id : '';
+    cs.value = d ? d.user_id : (clientId || (cs.options[0] && cs.options[0].value) || ''); cs.disabled = !!d;
     $('mTitle').textContent = d ? 'Edit deal' : 'Add deal';
     $('f_brand').value = d ? d.brand : ''; $('f_pkg').value = d && d.package ? d.package : 'Dedicated Video';
     $('f_value').value = d && d.value != null ? d.value : ''; $('f_stage').value = d ? d.stage : 'pitch';
@@ -604,7 +659,7 @@
     e.preventDefault();
     var brand = $('f_brand').value.trim();
     if (!brand) { say($('formMsg'), 'Enter a brand name.', 'err'); return; }
-    if (!$('f_client').value) { say($('formMsg'), 'Pick a client. Add users in Supabase first.', 'err'); return; }
+    if (!$('f_client').value) { say($('formMsg'), 'Pick a creator. Add users in Supabase first.', 'err'); return; }
     var docs = [], bad = false;
     $('f_docs').value.split('\n').forEach(function (line) {
       line = line.trim(); if (!line) return;
@@ -614,7 +669,7 @@
     });
     if (bad) { say($('formMsg'), 'Each document needs a link starting with https://', 'err'); return; }
     var row = { brand: brand, package: $('f_pkg').value, value: $('f_value').value === '' ? 0 : Number($('f_value').value),
-      stage: $('f_stage').value, air_date: $('f_air').value || null, brief: $('f_brief').value.trim() || null, docs: docs };
+      stage: $('f_stage').value, brand_user_id: $('f_brandacct').value || null, air_date: $('f_air').value || null, brief: $('f_brief').value.trim() || null, docs: docs };
     $('saveDeal').disabled = true; say($('formMsg'), 'Saving...');
     var q = editing ? sb.from('deals').update(row).eq('id', editing.id) : sb.from('deals').insert(Object.assign({ user_id: $('f_client').value }, row));
     q.then(function (r) {

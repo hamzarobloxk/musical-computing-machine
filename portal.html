@@ -195,6 +195,15 @@
   .check:has(input:checked) { border-color: rgba(59,130,246,.6); background: rgba(59,130,246,.08); }
   .count { float: right; font-family: var(--font-mono); font-size: 12px; }
 
+  .roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; }
+  .rcard { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .rcard h2 { font-size: 1.15rem; font-weight: 500; letter-spacing: -.02em; }
+  .rcard .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .rcard .stats b { display: block; font-size: 1.15rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .rcard .stats span { font-size: 11px; color: var(--muted); }
+  .rcard .rates { font-size: 13px; color: var(--muted); }
+  .rcard .rates b { color: var(--fg); font-weight: 500; }
+  .rcard .btn { margin-top: auto; }
   footer { border-top: 1px solid var(--line); padding: 20px 0; font-size: 13px; color: var(--muted); }
 
   @media (max-width: 960px) {
@@ -268,11 +277,12 @@
 
 <div id="appWrap" class="hidden">
   <nav class="side" aria-label="Portal">
-    <a href="#/dashboard" data-nav="dashboard"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Dashboard</a>
-    <a href="#/pipeline" data-nav="pipeline"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="10" rx="1.5"/><rect x="17" y="4" width="4" height="13" rx="1.5"/></svg>Deal Pipeline</a>
-    <a href="#/media-kit" data-nav="media-kit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>Media Kit</a>
-    <a href="#/vault" data-nav="vault"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>File Vault</a>
-    <a href="#/wishlist" data-nav="wishlist"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10A4.5 4.5 0 0112 7.7a4.5 4.5 0 017.5 2.8c0 5.4-7.5 10-7.5 10z"/></svg>Brand Wishlist</a>
+    <a href="#/dashboard" data-nav="dashboard" data-role="creator"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Dashboard</a>
+    <a href="#/roster" data-nav="roster" data-role="brand"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 5.3a3.2 3.2 0 010 5.4M18 14.4c1.9.8 3 2.6 3 5.6"/></svg>Creator Roster</a>
+    <a href="#/pipeline" data-nav="pipeline"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="10" rx="1.5"/><rect x="17" y="4" width="4" height="13" rx="1.5"/></svg><span id="navPipe">Deal Pipeline</span></a>
+    <a href="#/media-kit" data-nav="media-kit" data-role="creator"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>Media Kit</a>
+    <a href="#/vault" data-nav="vault" data-role="creator"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>File Vault</a>
+    <a href="#/wishlist" data-nav="wishlist" data-role="creator"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10A4.5 4.5 0 0112 7.7a4.5 4.5 0 017.5 2.8c0 5.4-7.5 10-7.5 10z"/></svg>Brand Wishlist</a>
     <a class="btn btn--primary btn--sm call" id="callBtn" href="#">Book a strategy call</a>
   </nav>
 
@@ -293,10 +303,16 @@
       </div>
     </section>
 
+    <!-- ROSTER (brands) -->
+    <section data-route="roster" class="hidden" aria-labelledby="h-roster">
+      <div class="page-head"><div><p class="eyebrow">AeroReach roster</p><h1 id="h-roster">Creator Roster</h1><p class="sub">Aviation creators who work with AeroReach. Tell us who you want to reach and we will set up the campaign.</p></div></div>
+      <div class="roster" id="rosterGrid"></div>
+    </section>
+
     <!-- PIPELINE -->
     <section data-route="pipeline" class="hidden" aria-labelledby="h-pipe">
       <div class="page-head">
-        <div><p class="eyebrow">Sponsorships</p><h1 id="h-pipe">Deal Pipeline</h1><p class="sub">Every deal AeroReach is working for you, from wishlist to paid. Click a deal for the brief, documents and messages.</p></div>
+        <div><p class="eyebrow">Sponsorships</p><h1 id="h-pipe">Deal Pipeline</h1><p class="sub" id="pipeSub">Every deal AeroReach is working for you, from wishlist to paid. Click a deal for the brief, documents and messages.</p></div>
         <div class="seg" role="group" aria-label="View"><button type="button" id="viewBoard" aria-pressed="true">Board</button><button type="button" id="viewTable" aria-pressed="false">Table</button></div>
       </div>
       <div class="board" id="board"></div>
@@ -389,7 +405,7 @@
   // The publishable key is designed to be public. Access is enforced by Row Level Security in Supabase.
   var SUPABASE_URL = 'https://zawcqakjlxhkbqumeqwj.supabase.co';
   var SUPABASE_KEY = 'sb_publishable_V-QPJZi-g1X-_lgR9nHCdw_kI60HFgf';
-  var CALL_URL = 'mailto:hamzaosman@aeroreachmedia.com?subject=Strategy%20call'; // swap for a Calendly link when you have one
+  var CALL_URL = 'https://calendar.app.google/anXqdosugg1mtqHe7'; // Google Calendar booking page
 
   var $ = function (id) { return document.getElementById(id); };
   var STAGES = [
@@ -402,7 +418,8 @@
   ];
   function stageLabel(id) { for (var i = 0; i < STAGES.length; i++) if (STAGES[i].id === id) return STAGES[i].label; return id || ''; }
   function stageIndex(id) { for (var i = 0; i < STAGES.length; i++) if (STAGES[i].id === id) return i; return 99; }
-  var ROUTES = ['dashboard', 'pipeline', 'media-kit', 'vault', 'wishlist'];
+  var ROUTES = { creator: ['dashboard', 'pipeline', 'media-kit', 'vault', 'wishlist'], brand: ['roster', 'pipeline'] };
+  var mode = 'creator';
   var CATS = [
     { id: 'media-kit', label: 'Media kits', hint: 'PDF or deck' },
     { id: 'analytics', label: 'Analytics PDFs', hint: 'YouTube and Instagram exports' },
@@ -484,7 +501,8 @@
   /* ---------- router ---------- */
   function currentRoute() {
     var r = (location.hash || '').replace(/^#\/?/, '');
-    return ROUTES.indexOf(r) > -1 ? r : 'dashboard';
+    var ok = ROUTES[mode];
+    return ok.indexOf(r) > -1 ? r : ok[0];
   }
   function route() {
     var r = currentRoute();
@@ -497,13 +515,46 @@
   }
   window.addEventListener('hashchange', function () { if (user) route(); });
 
+  function applyMode() {
+    document.querySelectorAll('[data-role]').forEach(function (el) { el.classList.toggle('hidden', el.getAttribute('data-role') !== mode); });
+    $('navPipe').textContent = mode === 'brand' ? 'Campaigns' : 'Deal Pipeline';
+    $('h-pipe').textContent = mode === 'brand' ? 'Campaigns' : 'Deal Pipeline';
+    $('pipeSub').textContent = mode === 'brand'
+      ? 'Every campaign you are running with AeroReach creators. Click one for the brief, documents and messages.'
+      : 'Every deal AeroReach is working for you, from wishlist to paid. Click a deal for the brief, documents and messages.';
+  }
   function enter(u) {
     user = u;
     $('who').textContent = u.email || '';
     $('callBtn').href = CALL_URL;
-    show('appView');
-    route();
-    loadDeals(); loadKit(); loadWish(); loadFiles();
+    sb.from('brands').select('company').eq('user_id', u.id).maybeSingle().then(function (r) {
+      mode = r.data ? 'brand' : 'creator';
+      applyMode(); show('appView'); route();
+      loadDeals();
+      if (mode === 'brand') loadRoster(); else { loadKit(); loadWish(); loadFiles(); }
+    });
+  }
+
+  /* ---------- roster (brands) ---------- */
+  function loadRoster() {
+    sb.from('roster').select('*').then(function (r) {
+      var g = $('rosterGrid'); g.textContent = '';
+      var list = r.data || [];
+      if (!list.length) { g.appendChild(h('p', { class: 'empty', text: 'No creators are listed yet. Check back soon, or email us and we will match you with the right channels.' })); return; }
+      list.forEach(function (c) {
+        function stat(v, l) { return h('div', null, [h('b', { text: v == null ? '\u2013' : compact(v) }), h('span', { text: l })]); }
+        var aud = [c.aud_pilots != null ? c.aud_pilots + '% pilots' : '', c.aud_sim != null ? c.aud_sim + '% sim' : '', c.aud_ga != null ? c.aud_ga + '% GA' : '', c.aud_aero != null ? c.aud_aero + '% aerospace' : ''].filter(Boolean).join(' \u00b7 ');
+        var rates = [c.rate_video != null ? ['Video', c.rate_video] : null, c.rate_integration != null ? ['Integration', c.rate_integration] : null, c.rate_social != null ? ['Social', c.rate_social] : null].filter(Boolean)
+          .map(function (x) { return x[0] + ' ' + money(x[1]); }).join(' \u00b7 ');
+        var name = c.channel_name || 'Aviation creator';
+        var kids = [h('div', null, [h('h2', { text: name }), c.niche ? h('p', { class: 'note', text: c.niche }) : null]),
+          h('div', { class: 'stats' }, [stat(c.youtube_subs, 'YouTube subs'), stat(c.avg_views, 'Avg views'), stat(c.ig_followers, 'Instagram')])];
+        if (aud) kids.push(h('p', { class: 'note', text: 'Audience: ' + aud }));
+        if (rates) kids.push(h('p', { class: 'rates', text: 'Rates: ' + rates }));
+        kids.push(h('a', { class: 'btn btn--ghost btn--sm', href: 'mailto:hamzaosman@aeroreachmedia.com?subject=' + encodeURIComponent('Interested in ' + name), text: 'Request an intro' }));
+        g.appendChild(h('div', { class: 'rcard' }, kids));
+      });
+    });
   }
 
   /* ---------- deals: dashboard, board, table, drawer ---------- */
@@ -606,10 +657,11 @@
   $('viewTable').addEventListener('click', function () { setView('table'); });
 
   var lastFocus = null, curDeal = null, legacy = [];
+  function mine() { return mode === 'brand' ? 'brand' : 'client'; }
   function renderThread(msgs) {
     var th = $('dThread'); th.textContent = '';
     var all = legacy.map(function (m) { return { who: m.from || 'AeroReach', text: m.text || '', at: m.at ? String(m.at).slice(0, 10) : '', me: false }; })
-      .concat(msgs.map(function (m) { return { who: m.sender === 'client' ? 'You' : 'AeroReach', text: m.body, at: String(m.created_at).slice(0, 10), me: m.sender === 'client' }; }));
+      .concat(msgs.map(function (m) { return { who: m.sender === mine() ? 'You' : 'AeroReach', text: m.body, at: String(m.created_at).slice(0, 10), me: m.sender === mine() }; }));
     if (!all.length) th.appendChild(h('p', { class: 'note', text: 'No messages yet. Write to the AeroReach team below.' }));
     all.forEach(function (m) {
       th.appendChild(h('div', { class: 'msgbox' + (m.me ? ' me' : '') }, [
@@ -625,7 +677,7 @@
     if (!t || !curDeal) return;
     $('dSend').disabled = true;
     var dealId = curDeal.id;
-    sb.from('deal_messages').insert({ deal_id: dealId, client_id: user.id, sender: 'client', body: t }).select().then(function (r) {
+    sb.from('deal_messages').insert({ deal_id: dealId, client_id: user.id, sender: mine(), body: t }).select().then(function (r) {
       $('dSend').disabled = false;
       if (r.error) { say($('dMsg'), 'Could not send. Please try again.', 'err'); return; }
       $('dText').value = ''; say($('dMsg'), 'Sent.', 'ok');
@@ -801,7 +853,7 @@
   /* ---------- session ---------- */
   sb.auth.onAuthStateChange(function (event, session) {
     if (event === 'PASSWORD_RECOVERY') { show('resetView'); return; }
-    if (event === 'SIGNED_OUT') { user = null; S = { deals: [], kit: null }; show('authView'); return; }
+    if (event === 'SIGNED_OUT') { user = null; mode = 'creator'; S = { deals: [], kit: null }; show('authView'); return; }
     if (session && session.user && (!user || user.id !== session.user.id)) {
       if (!$('resetView').classList.contains('hidden')) return;
       enter(session.user);

@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Team Portal | AeroReach Media</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%23090A0F%27/%3E%3Cpath d=%27M6 22L16 7l10 15%27 fill=%27none%27 stroke=%27%23EDEDED%27 stroke-width=%272.4%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M11 26l5-7.5 5 7.5%27 fill=%27none%27 stroke=%27%233b82f6%27 stroke-width=%272.4%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #090A0F; --surface: #0D0E14; --raised: #12141b; --line: #1e2029; --line-strong: #30333f;
+    --fg: #EDEDED; --muted: #8C8E9A; --accent: #3b82f6;
+    --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color-scheme: dark;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--fg); font-family: var(--font-sans); line-height: 1.55; -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; }
+  a { color: inherit; text-decoration: none; }
+  h1, h2, h3, p, ul { margin: 0; }
+  ul { padding: 0; list-style: none; }
+  button { font-family: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+  .hidden { display: none !important; }
+  .wrap { width: 100%; max-width: 1100px; margin-inline: auto; padding-inline: max(16px, env(safe-area-inset-left, 0px)); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  header { border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; background: rgba(9,10,15,.85); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+  header .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 500; letter-spacing: -.01em; }
+  .topbar { display: flex; align-items: center; gap: 12px; }
+  .who { font-size: 13px; color: var(--muted); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pill-btn { height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; color: var(--fg); font: 500 13px var(--font-sans); cursor: pointer; }
+  .pill-btn:hover { border-color: rgba(237,237,237,.45); background: rgba(237,237,237,.04); }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line-strong); font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .badge.live { color: #93c5fd; border-color: rgba(59,130,246,.5); background: rgba(59,130,246,.08); }
+  .badge.done { color: #4ade80; border-color: rgba(74,222,128,.4); background: rgba(74,222,128,.07); }
+
+  #authMain { flex: 1; display: grid; place-items: center; padding: 40px 16px; }
+  .card { width: 100%; max-width: 420px; border: 1px solid var(--line-strong); background: var(--surface); border-radius: 16px; padding: 32px 28px; }
+  .card h1 { margin-top: 10px; font-size: 1.75rem; letter-spacing: -.03em; font-weight: 500; }
+  .lead { margin-top: 8px; color: var(--muted); font-size: 15px; }
+  label { display: block; margin-top: 18px; font-size: 13px; color: var(--muted); }
+  input[type=text], input[type=email], input[type=password], input[type=url], select {
+    width: 100%; height: 44px; margin-top: 6px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line-strong);
+    background: var(--bg); color: var(--fg); font: 400 15px var(--font-sans);
+  }
+  textarea { width: 100%; margin-top: 6px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--bg); color: var(--fg); font: 400 15px/1.5 var(--font-sans); resize: vertical; }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); outline: none; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 24px; border-radius: 999px; border: 1px solid var(--line-strong); font: 500 15px var(--font-sans); cursor: pointer; transition: background .2s, border-color .2s; color: var(--fg); background: transparent; }
+  .btn.block { display: flex; width: 100%; margin-top: 22px; }
+  .btn--primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  .btn--primary:hover { background: #fff; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn--sm { height: 38px; padding: 0 18px; font-size: 14px; }
+  .msg { margin-top: 14px; font-size: 13px; min-height: 18px; color: var(--muted); }
+  .msg.err { color: #f87171; } .msg.ok { color: #4ade80; }
+
+  #appWrap { flex: 1; width: 100%; max-width: 1100px; margin-inline: auto; padding: 28px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px)); }
+  .page-head h1 { margin-top: 6px; font-size: 1.9rem; letter-spacing: -.03em; font-weight: 500; }
+  .page-head .sub { margin-top: 4px; color: var(--muted); font-size: 15px; max-width: 62ch; }
+  .panel { margin-top: 22px; border: 1px solid var(--line-strong); background: var(--surface); border-radius: 16px; padding: 22px; }
+  .panel h2 { font-size: 1.1rem; font-weight: 500; letter-spacing: -.02em; }
+  .panel .sub { margin-top: 2px; font-size: 14px; color: var(--muted); }
+  .empty { padding: 22px 0 6px; text-align: center; color: var(--muted); font-size: 14px; }
+  .note { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+  .task { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 14px; padding: 14px 0; border-bottom: 1px solid var(--line); align-items: start; }
+  .task:last-child { border-bottom: 0; }
+  .task .t { font-weight: 500; font-size: 15px; }
+  .task.is-done .t { color: var(--muted); text-decoration: line-through; }
+  .task .n { margin-top: 3px; font-size: 14px; color: #b9bac2; white-space: pre-wrap; }
+  .task .d { margin-top: 4px; font-size: 12px; color: var(--muted); }
+  .task select { width: auto; min-width: 130px; height: 36px; margin: 0; font-size: 13px; }
+
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; }
+  .tablewrap { overflow-x: auto; margin-top: 14px; }
+  table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font: 500 11px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 10px 12px; border-bottom: 1px solid var(--line-strong); }
+  td { padding: 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  td a { color: #93c5fd; text-decoration: underline; text-underline-offset: 3px; }
+  .mini { height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line-strong); background: transparent; color: var(--fg); font: 500 12px var(--font-sans); cursor: pointer; }
+  .mini:hover { border-color: #f87171; color: #f87171; }
+  .steps { margin: 12px 0 0; padding-left: 20px; color: #b9bac2; font-size: 14px; }
+  .steps li { margin-top: 4px; }
+  footer { border-top: 1px solid var(--line); padding: 20px 0; font-size: 13px; color: var(--muted); }
+  @media (max-width: 720px) { .grid2 { grid-template-columns: minmax(0, 1fr); } .who { display: none; } .page-head h1 { font-size: 1.6rem; } .task { grid-template-columns: minmax(0, 1fr); } .task select { width: 100%; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="AeroReach Media home">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <path d="M3 15.5L11 4l8 11.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M7 18.5l4-6 4 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/>
+      </svg>
+      AeroReach <span class="badge live" style="margin-left:6px">Team</span>
+    </a>
+    <div class="topbar">
+      <span class="who hidden" id="who"></span>
+      <button class="pill-btn hidden" id="signOut" type="button">Sign out</button>
+    </div>
+  </div>
+</header>
+
+<main id="authMain">
+  <section class="card" aria-labelledby="t">
+    <p class="eyebrow">Team access</p>
+    <h1 id="t">Team sign in</h1>
+    <p class="lead">For AeroReach team members only.</p>
+    <form id="loginForm" novalidate>
+      <label for="email">Email<input id="email" type="email" autocomplete="email" required></label>
+      <label for="pw">Password<input id="pw" type="password" autocomplete="current-password" required></label>
+      <button class="btn btn--primary block" type="submit" id="loginBtn">Sign in</button>
+    </form>
+    <p class="msg" id="loginMsg" role="status" aria-live="polite"></p>
+  </section>
+</main>
+
+<div id="appWrap" class="hidden">
+  <div class="page-head">
+    <p class="eyebrow">AeroReach team</p>
+    <h1 id="hello">Your work</h1>
+    <p class="sub">Your tasks, and a place to add the creators you find. You can only see your own work here.</p>
+  </div>
+
+  <section class="panel" aria-labelledby="tasksH">
+    <h2 id="tasksH">My tasks</h2>
+    <p class="sub">Change the status as you go so the founder can see where you are.</p>
+    <ul id="taskList"></ul>
+    <p class="empty hidden" id="noTasks">No tasks yet. New ones will show up here.</p>
+    <p class="msg" id="taskMsg" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="panel" aria-labelledby="addH">
+    <h2 id="addH">Add a creator</h2>
+    <p class="sub">Open the channel on YouTube, click About, then View email address. Only add emails that are shown publicly for business enquiries.</p>
+    <form id="addForm" novalidate>
+      <div class="grid2">
+        <label for="f_channel">Channel name *<input id="f_channel" type="text" maxlength="120" required></label>
+        <label for="f_creator">Creator's name<input id="f_creator" type="text" maxlength="120"></label>
+        <label for="f_subs">Subscribers (e.g. 124K)<input id="f_subs" type="text" maxlength="30"></label>
+        <label for="f_url">YouTube link<input id="f_url" type="url" maxlength="300" placeholder="https://www.youtube.com/@..."></label>
+      </div>
+      <label for="f_email">Business email<input id="f_email" type="email" maxlength="200" autocomplete="off"></label>
+      <label for="f_notes">Notes (optional)<textarea id="f_notes" rows="3" maxlength="1000" placeholder="Anything useful, such as where you found the email"></textarea></label>
+      <p class="msg" id="addMsg" role="status" aria-live="polite"></p>
+      <button class="btn btn--primary btn--sm" type="submit" id="addBtn">Add creator</button>
+    </form>
+  </section>
+
+  <section class="panel" aria-labelledby="listH">
+    <h2 id="listH">Creators you've added</h2>
+    <div class="tablewrap">
+      <table><thead><tr><th>Channel</th><th>Creator</th><th>Subs</th><th>Email</th><th>Added</th><th></th></tr></thead><tbody id="creatorRows"></tbody></table>
+    </div>
+    <p class="empty hidden" id="noCreators">Nothing added yet.</p>
+  </section>
+</div>
+
+<footer><div class="wrap">&copy; 2026 AeroReach Media. Keep creator details inside AeroReach.</div></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
+<script>
+(function () {
+  'use strict';
+  var SUPABASE_URL = 'https://zawcqakjlxhkbqumeqwj.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_V-QPJZi-g1X-_lgR9nHCdw_kI60HFgf';
+  var $ = function (id) { return document.getElementById(id); };
+  var STATUSES = [['todo', 'To do'], ['doing', 'In progress'], ['done', 'Done']];
+
+  if (!window.supabase) { $('loginMsg').textContent = 'Could not load. Refresh and try again.'; $('loginMsg').className = 'msg err'; return; }
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  var me = null, staffName = '';
+
+  function say(el, t, k) { el.textContent = t || ''; el.className = 'msg' + (k ? ' ' + k : ''); }
+  function h(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) { if (k === 'text') e.textContent = attrs[k]; else if (k === 'class') e.className = attrs[k]; else e.setAttribute(k, attrs[k]); });
+    (kids || []).forEach(function (c) { if (c) e.appendChild(c); });
+    return e;
+  }
+  function fdate(s) { return s ? new Date(String(s).slice(0, 10) + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) : ''; }
+  function safeUrl(u) { return /^https?:\/\//i.test(u || '') ? u : null; }
+  function show(view) {
+    $('authMain').classList.toggle('hidden', view === 'app');
+    $('appWrap').classList.toggle('hidden', view !== 'app');
+    $('signOut').classList.toggle('hidden', view !== 'app');
+    $('who').classList.toggle('hidden', view !== 'app');
+  }
+
+  /* ---------- auth ---------- */
+  $('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var email = $('email').value.trim(), pw = $('pw').value;
+    if (!email || !pw) { say($('loginMsg'), 'Enter your email and password.', 'err'); return; }
+    $('loginBtn').disabled = true; say($('loginMsg'), 'Signing in...');
+    sb.auth.signInWithPassword({ email: email, password: pw }).then(function (r) {
+      $('loginBtn').disabled = false;
+      if (r.error) say($('loginMsg'), 'That email and password did not match.', 'err'); else { say($('loginMsg'), ''); $('pw').value = ''; }
+    });
+  });
+  $('signOut').addEventListener('click', function () { sb.auth.signOut(); });
+
+  var entering = false;
+  function enter(u) {
+    if (entering) return; entering = true;
+    sb.from('staff').select('user_id,name').eq('user_id', u.id).maybeSingle().then(function (r) {
+      if (!r.data) {
+        sb.auth.signOut().then(function () { entering = false; show('auth'); say($('loginMsg'), 'This account is not set up as team. Ask the founder to add you.', 'err'); });
+        return;
+      }
+      entering = false; me = u; staffName = r.data.name || '';
+      $('who').textContent = u.email || '';
+      $('hello').textContent = staffName ? 'Hi ' + staffName : 'Your work';
+      show('app'); loadTasks(); loadCreators();
+    });
+  }
+
+  /* ---------- tasks ---------- */
+  function loadTasks() {
+    sb.from('tasks').select('*').order('created_at', { ascending: false }).then(function (r) {
+      var el = $('taskList'); el.textContent = '';
+      var list = r.data || [];
+      $('noTasks').classList.toggle('hidden', list.length > 0);
+      list.sort(function (a, b) { return (a.status === 'done') - (b.status === 'done'); });
+      list.forEach(function (t) {
+        var sel = h('select', { 'aria-label': 'Status for ' + t.title });
+        STATUSES.forEach(function (s) { var o = h('option', { value: s[0], text: s[1] }); if (t.status === s[0]) o.selected = true; sel.appendChild(o); });
+        sel.addEventListener('change', function () {
+          say($('taskMsg'), 'Saving...');
+          sb.from('tasks').update({ status: sel.value }).eq('id', t.id).then(function (res) {
+            if (res.error) say($('taskMsg'), 'Could not save that. Try again.', 'err'); else { say($('taskMsg'), 'Saved.', 'ok'); loadTasks(); }
+          });
+        });
+        var body = h('div', {}, [h('p', { class: 't', text: t.title })]);
+        if (t.notes) body.appendChild(h('p', { class: 'n', text: t.notes }));
+        if (t.due) body.appendChild(h('p', { class: 'd', text: 'Due ' + fdate(t.due) }));
+        el.appendChild(h('li', { class: 'task' + (t.status === 'done' ? ' is-done' : '') }, [body, sel]));
+      });
+    });
+  }
+
+  /* ---------- creators ---------- */
+  function loadCreators() {
+    sb.from('sourced_creators').select('*').order('created_at', { ascending: false }).then(function (r) {
+      var el = $('creatorRows'); el.textContent = '';
+      var list = r.data || [];
+      $('noCreators').classList.toggle('hidden', list.length > 0);
+      list.forEach(function (c) {
+        var ch = h('td', {});
+        var u = safeUrl(c.url);
+        if (u) ch.appendChild(h('a', { href: u, target: '_blank', rel: 'noopener noreferrer', text: c.channel })); else ch.textContent = c.channel;
+        var del = h('button', { type: 'button', class: 'mini', text: 'Remove', 'aria-label': 'Remove ' + c.channel });
+        del.addEventListener('click', function () {
+          if (del.getAttribute('data-sure') !== '1') { del.setAttribute('data-sure', '1'); del.textContent = 'Sure?'; return; }
+          sb.from('sourced_creators').delete().eq('id', c.id).then(function () { loadCreators(); });
+        });
+        el.appendChild(h('tr', {}, [ch, h('td', { text: c.creator || '' }), h('td', { text: c.subs || '' }), h('td', { text: c.email || '' }), h('td', { text: fdate(c.created_at) }), h('td', {}, [del])]));
+      });
+    });
+  }
+  $('addForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var channel = $('f_channel').value.trim(), email = $('f_email').value.trim(), url = $('f_url').value.trim();
+    if (!channel) { say($('addMsg'), 'Enter the channel name.', 'err'); return; }
+    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { say($('addMsg'), 'That email does not look right.', 'err'); return; }
+    if (url && !/^https?:\/\//i.test(url)) { say($('addMsg'), 'The link should start with https://', 'err'); return; }
+    $('addBtn').disabled = true; say($('addMsg'), 'Adding...');
+    var row = {
+      channel: channel, creator: $('f_creator').value.trim() || null, subs: $('f_subs').value.trim() || null,
+      url: url || null, email: email || null, notes: $('f_notes').value.trim() || null
+    };
+    sb.from('sourced_creators').insert(row).then(function (r) {
+      $('addBtn').disabled = false;
+      if (r.error) {
+        say($('addMsg'), r.error.code === '23505' ? 'That channel is already on the list.' : 'Could not add that. Check the details and try again.', 'err');
+        return;
+      }
+      $('addForm').reset(); say($('addMsg'), 'Added.', 'ok'); loadCreators();
+    });
+  });
+
+  /* ---------- session ---------- */
+  sb.auth.onAuthStateChange(function (ev, session) {
+    if (session && session.user) enter(session.user);
+    else if (ev === 'SIGNED_OUT') { me = null; entering = false; show('auth'); }
+  });
+  sb.auth.getSession().then(function (r) {
+    if (r.data && r.data.session) enter(r.data.session.user); else show('auth');
+  });
+})();
+</script>
+</body>
+</html>

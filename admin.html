@@ -288,6 +288,7 @@
     <button type="button" role="tab" data-tab="messages" aria-selected="true">Messages<span class="dot hidden" id="tabDot">0</span></button>
     <button type="button" role="tab" data-tab="clients" aria-selected="false">Clients</button>
     <button type="button" role="tab" data-tab="deals" aria-selected="false">All deals</button>
+    <button type="button" role="tab" data-tab="team" aria-selected="false">Team</button>
   </div>
 
   <section data-tab-panel="messages">
@@ -308,6 +309,44 @@
     <div class="panel" style="margin-top:0"><div class="tablewrap" style="margin-top:0">
       <table style="min-width:760px"><thead><tr><th>Client</th><th>Brand</th><th>Package</th><th>Value</th><th>Stage</th><th>Air date</th><th></th></tr></thead><tbody id="allDeals"></tbody></table>
     </div><p class="empty hidden" id="noDeals">No deals yet. Click "Add deal".</p></div>
+  </section>
+
+  <section data-tab-panel="team" class="hidden">
+    <div class="two">
+      <div class="panel" style="margin-top:0">
+        <h2>Team members</h2>
+        <p class="sub">Create their login in Supabase first (Authentication, Users, Auto Confirm), then pick them here. They sign in at /team.</p>
+        <ul class="list" id="staffList"></ul>
+        <p class="empty hidden" id="noStaff">No team members yet.</p>
+        <label for="s_user">Add team member<select id="s_user"></select></label>
+        <label for="s_name">Their first name<input id="s_name" type="text" maxlength="60"></label>
+        <p class="msg" id="staffMsg" role="status" aria-live="polite"></p>
+        <button class="btn btn--primary btn--sm" type="button" id="addStaff">Add to team</button>
+      </div>
+      <div class="panel" style="margin-top:0">
+        <h2>Assign a task</h2>
+        <p class="sub">They see it on their team page and can mark progress.</p>
+        <label for="k_who">Assign to<select id="k_who"></select></label>
+        <label for="k_title">Task<input id="k_title" type="text" maxlength="200" placeholder="Find 10 creator emails from the Feedspot list"></label>
+        <label for="k_due">Due date (optional)<input id="k_due" type="date"></label>
+        <label for="k_notes">Notes (optional)<textarea id="k_notes" rows="3" maxlength="2000"></textarea></label>
+        <p class="msg" id="taskFormMsg" role="status" aria-live="polite"></p>
+        <button class="btn btn--primary btn--sm" type="button" id="addTask">Assign task</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Tasks</h2>
+      <div class="tablewrap"><table style="min-width:640px"><thead><tr><th>Task</th><th>Assigned to</th><th>Status</th><th>Due</th><th></th></tr></thead><tbody id="taskRows"></tbody></table></div>
+      <p class="empty hidden" id="noTasksAdmin">No tasks yet.</p>
+    </div>
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div><h2>Creators found by the team</h2><p class="sub">Only the business emails shown publicly on each channel.</p></div>
+        <button class="btn btn--ghost btn--sm" type="button" id="exportCreators">Download CSV</button>
+      </div>
+      <div class="tablewrap"><table style="min-width:820px"><thead><tr><th>Channel</th><th>Creator</th><th>Subs</th><th>Email</th><th>Added by</th><th>Date</th><th></th></tr></thead><tbody id="srcRows"></tbody></table></div>
+      <p class="empty hidden" id="noSrc">Nothing added yet.</p>
+    </div>
   </section>
 </div>
 
@@ -351,7 +390,7 @@
   if (!window.supabase) { $('loginMsg').textContent = 'Could not load. Refresh and try again.'; $('loginMsg').className = 'msg err'; return; }
   var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   var me = null;
-  var D = { profiles: [], deals: [], kits: {}, wishes: {}, msgs: [], brands: [] };
+  var D = { profiles: [], deals: [], kits: {}, wishes: {}, msgs: [], brands: [], staff: [], tasks: [], sourced: [] };
   var selConv = null, selClient = null, editing = null;
 
   function say(el, t, k) { el.textContent = t || ''; el.className = 'msg' + (k ? ' ' + k : ''); }
@@ -408,17 +447,23 @@
       sb.from('media_kits').select('*'),
       sb.from('wishlists').select('*'),
       sb.from('deal_messages').select('*').order('created_at', { ascending: true }),
-      sb.from('brands').select('*')
+      sb.from('brands').select('*'),
+      sb.from('staff').select('*').order('created_at', { ascending: true }),
+      sb.from('tasks').select('*').order('created_at', { ascending: false }),
+      sb.from('sourced_creators').select('*').order('created_at', { ascending: false })
     ]).then(function (r) {
       D.profiles = r[0].data || []; D.deals = r[1].data || [];
       D.kits = {}; (r[2].data || []).forEach(function (k) { D.kits[k.user_id] = k; });
       D.wishes = {}; (r[3].data || []).forEach(function (w) { D.wishes[w.user_id] = w; });
       D.msgs = r[4].data || []; D.brands = r[5].data || [];
+      D.staff = r[6].data || []; D.tasks = r[7].data || []; D.sourced = r[8].data || [];
       renderAll();
     });
   }
   function unreadCount() { return D.msgs.filter(function (m) { return m.sender !== 'admin' && !m.read_by_admin; }).length; }
   function isBrand(id) { return D.brands.some(function (b) { return b.user_id === id; }); }
+  function isStaff(id) { return D.staff.some(function (s) { return s.user_id === id; }); }
+  function staffName(id) { for (var i = 0; i < D.staff.length; i++) if (D.staff[i].user_id === id) return D.staff[i].name || emailOf(id); return emailOf(id); }
   function brandName(id) { for (var i = 0; i < D.brands.length; i++) if (D.brands[i].user_id === id) return D.brands[i].company || emailOf(id); return emailOf(id); }
 
   function renderAll() {
@@ -431,7 +476,7 @@
     $('mUnread').textContent = String(un); $('mClients').textContent = String(D.profiles.length);
     $('mActive').textContent = String(active); $('mSecured').textContent = money(secured);
     $('tabDot').textContent = String(un); $('tabDot').classList.toggle('hidden', un === 0);
-    renderConvs(); renderClients(); renderDeals();
+    renderConvs(); renderClients(); renderDeals(); renderTeam();
     if (selConv) renderThread(selConv); if (selClient) renderClient(selClient);
   }
 
@@ -515,7 +560,7 @@
       var n = D.deals.filter(function (d) { return brand ? d.brand_user_id === p.user_id : d.user_id === p.user_id; }).length;
       var b = h('button', { type: 'button', class: 'conv' }, [
         h('div', { class: 'top' }, [h('span', { text: brand ? brandName(p.user_id) : (p.channel_name || p.name || p.email || 'Client') }),
-          h('span', { class: 'badge' + (brand ? ' live' : ''), text: brand ? 'Brand' : n + (n === 1 ? ' deal' : ' deals') })]),
+          h('span', { class: 'badge' + (brand || isStaff(p.user_id) ? ' live' : ''), text: brand ? 'Brand' : (isStaff(p.user_id) ? 'Team' : n + (n === 1 ? ' deal' : ' deals')) })]),
         h('div', { class: 'who', text: p.email || '' })
       ]);
       if (selClient === p.user_id) b.setAttribute('aria-current', 'true');
@@ -631,12 +676,91 @@
     });
   }
 
+  /* ---------- team ---------- */
+  var TSTAT = [['todo', 'To do'], ['doing', 'In progress'], ['done', 'Done']];
+  function confirmBtn(label, sure, fn) {
+    var b = h('button', { type: 'button', class: 'mini danger', text: label });
+    b.addEventListener('click', function () { if (!b.classList.contains('confirm')) { b.classList.add('confirm'); b.textContent = sure; return; } fn(); });
+    return b;
+  }
+  function renderTeam() {
+    var sl = $('staffList'); sl.textContent = '';
+    $('noStaff').classList.toggle('hidden', D.staff.length > 0);
+    D.staff.forEach(function (s) {
+      var rm = confirmBtn('Remove', 'Click again to confirm', function () {
+        sb.from('staff').delete().eq('user_id', s.user_id).then(function () { loadAll(); });
+      });
+      sl.appendChild(h('li', null, [h('span', { text: (s.name || 'Team member') + ' · ' + emailOf(s.user_id) }), rm]));
+    });
+    var su = $('s_user'), keepU = su.value; su.textContent = '';
+    D.profiles.filter(function (p) { return !isStaff(p.user_id) && !isBrand(p.user_id) && (!me || p.user_id !== me.id); }).forEach(function (p) {
+      su.appendChild(h('option', { value: p.user_id, text: p.email || p.user_id }));
+    });
+    if (keepU) su.value = keepU;
+    var kw = $('k_who'), keepW = kw.value; kw.textContent = '';
+    D.staff.forEach(function (s) { kw.appendChild(h('option', { value: s.user_id, text: (s.name || 'Team member') + ' (' + emailOf(s.user_id) + ')' })); });
+    if (keepW) kw.value = keepW;
+
+    var tr = $('taskRows'); tr.textContent = '';
+    $('noTasksAdmin').classList.toggle('hidden', D.tasks.length > 0);
+    D.tasks.forEach(function (t) {
+      var sel = h('select', { 'aria-label': 'Status for ' + t.title });
+      TSTAT.forEach(function (x) { var o = h('option', { value: x[0], text: x[1] }); if (t.status === x[0]) o.selected = true; sel.appendChild(o); });
+      sel.addEventListener('change', function () {
+        sb.from('tasks').update({ status: sel.value }).eq('id', t.id).then(function (r) { if (r.error) sel.value = t.status; else t.status = sel.value; });
+      });
+      var rm = confirmBtn('Delete', 'Click again', function () { sb.from('tasks').delete().eq('id', t.id).then(function () { loadAll(); }); });
+      tr.appendChild(h('tr', null, [h('td', { text: t.title + (t.notes ? ' - ' + t.notes : '') }), h('td', { text: t.assigned_to ? staffName(t.assigned_to) : 'Unassigned' }),
+        h('td', null, [sel]), h('td', { text: t.due ? fdate(t.due) : '' }), h('td', null, [rm])]));
+    });
+
+    var sr = $('srcRows'); sr.textContent = '';
+    $('noSrc').classList.toggle('hidden', D.sourced.length > 0);
+    D.sourced.forEach(function (c) {
+      var chCell = h('td', {});
+      if (/^https?:\/\//i.test(c.url || '')) chCell.appendChild(h('a', { href: c.url, target: '_blank', rel: 'noopener noreferrer', text: c.channel, style: 'color:#93c5fd;text-decoration:underline' })); else chCell.textContent = c.channel;
+      var rm = confirmBtn('Delete', 'Click again', function () { sb.from('sourced_creators').delete().eq('id', c.id).then(function () { loadAll(); }); });
+      sr.appendChild(h('tr', null, [chCell, h('td', { text: c.creator || '' }), h('td', { text: c.subs || '' }), h('td', { text: c.email || '' }),
+        h('td', { text: c.added_by ? staffName(c.added_by) : '' }), h('td', { text: fdate(c.created_at) }), h('td', null, [rm])]));
+    });
+  }
+  $('addStaff').addEventListener('click', function () {
+    var id = $('s_user').value, name = $('s_name').value.trim();
+    if (!id) { say($('staffMsg'), 'Create their login in Supabase first, then pick them here.', 'err'); return; }
+    if (!name) { say($('staffMsg'), 'Enter their first name.', 'err'); return; }
+    sb.from('staff').insert({ user_id: id, name: name }).then(function (r) {
+      if (r.error) { say($('staffMsg'), 'Could not add. Has the staff setup SQL been run?', 'err'); return; }
+      $('s_name').value = ''; say($('staffMsg'), 'Added.', 'ok'); loadAll();
+    });
+  });
+  $('addTask').addEventListener('click', function () {
+    var who = $('k_who').value, title = $('k_title').value.trim();
+    if (!who) { say($('taskFormMsg'), 'Add a team member first.', 'err'); return; }
+    if (!title) { say($('taskFormMsg'), 'Enter the task.', 'err'); return; }
+    sb.from('tasks').insert({ assigned_to: who, title: title, notes: $('k_notes').value.trim() || null, due: $('k_due').value || null }).then(function (r) {
+      if (r.error) { say($('taskFormMsg'), 'Could not save the task.', 'err'); return; }
+      $('k_title').value = ''; $('k_notes').value = ''; $('k_due').value = ''; say($('taskFormMsg'), 'Assigned.', 'ok'); loadAll();
+    });
+  });
+  function csvCell(v) {
+    var s = v == null ? '' : String(v);
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  $('exportCreators').addEventListener('click', function () {
+    var rows = [['Channel', 'Creator', 'Subscribers', 'YouTube URL', 'Email', 'Notes', 'Added by', 'Date']];
+    D.sourced.forEach(function (c) { rows.push([c.channel, c.creator, c.subs, c.url, c.email, c.notes, c.added_by ? staffName(c.added_by) : '', String(c.created_at || '').slice(0, 10)]); });
+    var blob = new Blob([rows.map(function (r) { return r.map(csvCell).join(','); }).join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'aeroreach-sourced-creators.csv';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+
   /* ---------- deal editor ---------- */
   STAGES.forEach(function (s) { $('f_stage').appendChild(h('option', { value: s.id, text: s.label })); });
   function openForm(d, clientId) {
     editing = d || null;
     var cs = $('f_client'); cs.textContent = '';
-    D.profiles.filter(function (p) { return !isBrand(p.user_id); }).forEach(function (p) { cs.appendChild(h('option', { value: p.user_id, text: p.email || p.user_id })); });
+    D.profiles.filter(function (p) { return !isBrand(p.user_id) && !isStaff(p.user_id); }).forEach(function (p) { cs.appendChild(h('option', { value: p.user_id, text: p.email || p.user_id })); });
     var bs = $('f_brandacct'); bs.textContent = ''; bs.appendChild(h('option', { value: '', text: 'None' }));
     D.brands.forEach(function (b) { bs.appendChild(h('option', { value: b.user_id, text: (b.company || emailOf(b.user_id)) })); });
     bs.value = d && d.brand_user_id ? d.brand_user_id : '';
